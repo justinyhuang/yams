@@ -1,0 +1,9 @@
+---
+    description: "read two consts at once"
+    function_code: "ReadHoldingRegisters"
+    access_start_address: 40001
+    access_quantity: 4
+    new_values: ~
+    repeat_times: ~
+    delay: ~
+    data_type: "Float32"

@@ -1,0 +1,25 @@
+---
+  common:
+      protocol_type: "TCP"
+      device_port: ~
+      device_ip_address: "127.0.0.1:5502"
+      device_type: "Server"
+      baudrate: ~
+  client: ~
+  server:
+      function_codes: [
+          "ReadHoldingRegisters"
+      ]
+      register_data:
+          db: {
+              40001: {
+                 data_description: "Pi Value",
+                 data_type: "Float32",
+                 data_value: 3.141593,
+                 },
+              40003: {
+                 data_description: "Golden Ratio",
+                 data_type: "Float32",
+                 data_value: 1.618034,
+                 }
+          }

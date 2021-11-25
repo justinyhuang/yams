@@ -1,0 +1,28 @@
+---
+  common:
+      protocol_type: "TCP"
+      device_port: ~
+      device_type: "Client"
+      baudrate: ~
+  client:
+      requests: [
+          {
+              server_id: ~,
+              server_address: "127.0.0.1:5502",
+              request_files: [
+                  "test/requests/tcp/read.multiple.request.yaml",
+                  "test/requests/tcp/read.pi.request.yaml",
+                  "test/requests/tcp/read.golden.ratio.request.yaml",
+              ]
+          },
+          {
+              server_id: ~,
+              server_address: "127.0.0.1:5503",
+              request_files: [
+                  "test/requests/tcp/read.flowrate.request.yaml",
+                  "test/requests/tcp/read.resettable.totalizer.request.yaml",
+              ]
+          },
+      ]
+      register_data: ~
+  server: ~

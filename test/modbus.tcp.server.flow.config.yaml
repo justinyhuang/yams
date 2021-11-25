@@ -1,0 +1,25 @@
+---
+  common:
+      protocol_type: "TCP"
+      device_port: ~
+      device_ip_address: "127.0.0.1:5503"
+      device_type: "Server"
+      baudrate: ~
+  client: ~
+  server:
+      function_codes: [
+          "ReadHoldingRegisters"
+      ]
+      register_data:
+          db: {
+              40001: {
+                 data_description: "Flowrate",
+                 data_type: "Float32",
+                 data_value: 42.03
+                 },
+              40003: {
+                 data_description: "Resettable Totalizer",
+                 data_type: "Float64",
+                 data_value: 424242.242424
+                 }
+          }

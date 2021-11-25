@@ -1,0 +1,24 @@
+[package]
+name = "yams"
+description = "Yet Another Modbus Simulator"
+version = "0.1.0"
+authors = ["Justin Huang <justin.y.huang@live.com>"]
+licence = "MIT/Apache-2.0"
+readme = "README.md"
+keywords = ["modbus", "automation"]
+homepage = "https://github.com/justinyhuang/yams"
+repository = "https://github.com/justinyhuang/yams"
+edition = "2021"
+
+[dependencies]
+clap = "3.0.0-beta.5"
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.8"
+byteorder = "1.4.3"
+anyhow = "1.0.48"
+tokio-modbus = { version = "0.5.1", features = ["server", "tcp", "tcp-server-unstable"] }
+futures = "0.3"
+tokio = { version = "1", features = ["net", "macros", "io-util", "rt", "time"] }
+
+[dev-dependencies]
+float-cmp = "0.9.0"
