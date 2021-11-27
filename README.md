@@ -17,7 +17,7 @@ simulator works before running the simulator, including:
     - supported registers/coils and their values
 - Modbus client behaviors:
     - requests to send to server(s)
-    - support repeated request
+    - support repeated request (single/multi request repeat)
     - support predefined delay before a request
 - Human friendly UI:
     - flexible request organization
@@ -32,7 +32,7 @@ simulator works before running the simulator, including:
 - [x] implement Modbus TCP support
 - [x] implement YAML configuration/request support
 - [ ] implement Modbus RTU support
-- [ ] implement support for repeated request(s)
+- [x] implement support for repeated request(s)
 - [ ] implement support for delay before request(s)
 - [ ] implement error handling
 - [ ] implement one-shot mode without config files

@@ -9,6 +9,7 @@
           {
               server_id: ~,
               server_address: "127.0.0.1:5502",
+              repeat_times: ~,
               request_files: [
                   "test/requests/tcp/read.multiple.request.yaml",
                   "test/requests/tcp/read.pi.request.yaml",
@@ -18,6 +19,7 @@
           {
               server_id: ~,
               server_address: "127.0.0.1:5503",
+              repeat_times: 2,
               request_files: [
                   "test/requests/tcp/read.flowrate.request.yaml",
                   "test/requests/tcp/read.resettable.totalizer.request.yaml",

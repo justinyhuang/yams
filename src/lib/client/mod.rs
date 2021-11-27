@@ -26,26 +26,32 @@ pub async fn start_modbus_client(config: ModbusDeviceConfig) -> Result<(), Box<d
             }
         }
 
-        let mut ctx = tcp::connect(ip_addr).await.unwrap();
-        for r in rlist {
-            let start_addr = r.access_start_address;
-            let count = r.access_quantity;
-            let response = ctx
-                .read_input_registers(start_addr, count)
-                .await.unwrap();
-            println!("{}", r.description);
-            match r.data_type {
-                DataType::Float32 => {
-                    let mut float32s = vec![0.0_f32; (count / 2) as usize];
-                    write_be_u16_into_f32(&response, &mut float32s);
-                    println!("===> {:?}", float32s);
+        let section_repeat_times = request.repeat_times.or_else(|| Some(1)).unwrap();
+        for _ in 0..section_repeat_times {
+            let mut ctx = tcp::connect(ip_addr).await.unwrap();
+            for r in &rlist {
+                let start_addr = r.access_start_address;
+                let count = r.access_quantity;
+                let file_repeat_times = r.repeat_times.or_else(|| Some(1)).unwrap();
+                for _ in 0..file_repeat_times {
+                    let response = ctx
+                        .read_input_registers(start_addr, count)
+                        .await.unwrap();
+                    println!("{}", r.description);
+                    match r.data_type {
+                        DataType::Float32 => {
+                            let mut float32s = vec![0.0_f32; (count / 2) as usize];
+                            write_be_u16_into_f32(&response, &mut float32s);
+                            println!("===> {:?}", float32s);
+                        }
+                        DataType::Float64 => {
+                            let mut float64s = vec![0.0_f64; (count / 4) as usize];
+                            write_be_u16_into_f64(&response, &mut float64s);
+                            println!("===> {:?}", float64s);
+                        }
+                        _ => todo!()
+                    }
                 }
-                DataType::Float64 => {
-                    let mut float64s = vec![0.0_f64; (count / 4) as usize];
-                    write_be_u16_into_f64(&response, &mut float64s);
-                    println!("===> {:?}", float64s);
-                }
-                _ => todo!()
             }
         }
     }

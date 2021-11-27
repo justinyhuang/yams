@@ -4,6 +4,6 @@
     access_start_address: 40001
     access_quantity: 2
     new_values: ~
-    repeat_times: ~
+    repeat_times: 2
     delay: ~
     data_type: "Float32"

@@ -194,6 +194,8 @@ pub struct ModbusClientRequest {
     pub server_id: Option<u8>,
     /// requested server address for Modbus TCP
     pub server_address: Option<SocketAddr>,
+    /// repeated times
+    pub repeat_times: Option<u16>,
     /// request files
     pub request_files: Vec<PathBuf>,
 }
