@@ -25,7 +25,7 @@ simulator works before running the simulator, including:
 
 ## Quick Demo:
 
-[![asciicast](https://asciinema.org/a/451879.png)](https://asciinema.org/a/451879)
+[DEMO 1](https://asciinema.org/a/451879)
 
 ## Todo:
 
