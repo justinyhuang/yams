@@ -5,5 +5,5 @@
     access_quantity: 4
     new_values: ~
     repeat_times: ~
-    delay: ~
+    delay: 20
     data_type: "Float64"

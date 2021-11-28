@@ -11,6 +11,7 @@
               server_address: "127.0.0.1:5502",
               repeat_times: ~,
               request_files: [
+                  #"test/requests/tcp/read.pi.indefinitely.request.yaml",
                   "test/requests/tcp/read.multiple.request.yaml",
                   "test/requests/tcp/read.pi.request.yaml",
                   "test/requests/tcp/read.golden.ratio.request.yaml",

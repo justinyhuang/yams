@@ -5,7 +5,6 @@ use std::{
     collections::HashMap,
     net::SocketAddr,
     path::PathBuf,
-    time::Duration,
     fs};
 use crate::lib::core::util::*;
 
@@ -89,10 +88,10 @@ pub struct ModbusRequest {
     pub access_quantity: u16,
     /// the values to write
     pub new_values: Option<Vec<u16>>,
-    /// repeat times
+    /// repeat times (0xFFFF to repeat indefinitely)
     pub repeat_times: Option<u16>,
     /// delay before request, in 100 ms
-    pub delay: Option<Duration>,
+    pub delay: Option<u64>,
     /// type of the data in the request
     pub data_type: DataType,
 }
@@ -188,13 +187,15 @@ impl ModbusRegisterDatabase {
     }
 }
 
+pub const REPEAT_TIME_INDEFINITE: u16 = 0xFFFF;
+
 #[derive(Debug, Deserialize)]
 pub struct ModbusClientRequest {
     /// requested server ID for Modbus RTU
     pub server_id: Option<u8>,
     /// requested server address for Modbus TCP
     pub server_address: Option<SocketAddr>,
-    /// repeated times
+    /// repeat times (0xFFFF to repeat indefinitely)
     pub repeat_times: Option<u16>,
     /// request files
     pub request_files: Vec<PathBuf>,

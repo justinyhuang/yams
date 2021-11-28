@@ -1,0 +1,9 @@
+---
+    description: "read Pi value"
+    function_code: "ReadHoldingRegisters"
+    access_start_address: 40001
+    access_quantity: 2
+    new_values: ~
+    repeat_times: 0xFFFF
+    delay: 10
+    data_type: "Float32"

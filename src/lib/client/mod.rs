@@ -1,11 +1,12 @@
 use std::fs;
 
 use tokio_modbus::prelude::*;
+use tokio::time::{sleep, Duration};
 
 use crate::{ModbusDeviceConfig,
             ModbusRequest};
 use crate::lib::core::util::*;
-use crate::lib::core::config::DataType;
+use crate::lib::core::config::*;
 
 pub async fn start_modbus_client(config: ModbusDeviceConfig) -> Result<(), Box<dyn std::error::Error>>
 {
@@ -26,14 +27,26 @@ pub async fn start_modbus_client(config: ModbusDeviceConfig) -> Result<(), Box<d
             }
         }
 
-        let section_repeat_times = request.repeat_times.or_else(|| Some(1)).unwrap();
-        for _ in 0..section_repeat_times {
+        let mut section_repeat_times = request.repeat_times.or_else(|| Some(1)).unwrap();
+        #[allow(unused_parens)]
+        let section_indefinite_loop = (section_repeat_times == REPEAT_TIME_INDEFINITE);
+        while section_repeat_times > 0 {
+            if !section_indefinite_loop {
+                section_repeat_times -= 1;
+            }
             let mut ctx = tcp::connect(ip_addr).await.unwrap();
             for r in &rlist {
                 let start_addr = r.access_start_address;
                 let count = r.access_quantity;
-                let file_repeat_times = r.repeat_times.or_else(|| Some(1)).unwrap();
-                for _ in 0..file_repeat_times {
+                let mut file_repeat_times = r.repeat_times.or_else(|| Some(1)).unwrap();
+                #[allow(unused_parens)]
+                let file_indefinite_loop = (file_repeat_times == REPEAT_TIME_INDEFINITE);
+                let delay_in_100ms = r.delay.or_else(|| Some(0)).unwrap();
+                while file_repeat_times > 0 {
+                    if !file_indefinite_loop {
+                        file_repeat_times -= 1;
+                    }
+                    sleep(Duration::from_millis(100 * delay_in_100ms)).await;
                     let response = ctx
                         .read_input_registers(start_addr, count)
                         .await.unwrap();
