@@ -31,28 +31,6 @@ pub enum DataType {
 }
 
 #[derive(ArgEnum, Clone, PartialEq, Debug, Deserialize)]
-#[serde(untagged)]
-pub enum DataValue {
-    Float32(f32),
-    Float64(f64),
-    Uint32(u32),
-    Uint64(u64),
-    Int32(i32),
-    Int64(i64),
-}
-
-impl std::fmt::Display for DataValue {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result
-    {
-        match *self {
-            DataValue::Float32(v) => write!(f, "{}", v),
-            DataValue::Float64(v) => write!(f, "{}", v),
-            _ => todo!()
-        }
-    }
-}
-
-#[derive(ArgEnum, Clone, PartialEq, Debug, Deserialize)]
 pub enum FunctionCode {
     ReadCoils,
     ReadDiscreteInputs,

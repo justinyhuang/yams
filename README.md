@@ -33,7 +33,7 @@ simulator works before running the simulator, including:
 - [x] implement YAML configuration/request support
 - [ ] implement Modbus RTU support
 - [x] implement support for repeated request(s)
-- [ ] implement support for delay before request(s)
+- [x] implement support for delay before request(s)
 - [ ] implement error handling
 - [ ] implement one-shot mode without config files
 - [ ] implement verbose mode to print out more detail/data
