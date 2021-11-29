@@ -27,6 +27,7 @@ pub async fn start_modbus_client(config: ModbusDeviceConfig) -> Result<(), Box<d
             }
         }
 
+        let mut ctx = tcp::connect(ip_addr).await.unwrap();
         let mut section_repeat_times = request.repeat_times.or_else(|| Some(1)).unwrap();
         #[allow(unused_parens)]
         let section_indefinite_loop = (section_repeat_times == REPEAT_TIME_INDEFINITE);
@@ -34,7 +35,6 @@ pub async fn start_modbus_client(config: ModbusDeviceConfig) -> Result<(), Box<d
             if !section_indefinite_loop {
                 section_repeat_times -= 1;
             }
-            let mut ctx = tcp::connect(ip_addr).await.unwrap();
             for r in &rlist {
                 let start_addr = r.access_start_address;
                 let count = r.access_quantity;
@@ -47,22 +47,33 @@ pub async fn start_modbus_client(config: ModbusDeviceConfig) -> Result<(), Box<d
                         file_repeat_times -= 1;
                     }
                     sleep(Duration::from_millis(100 * delay_in_100ms)).await;
-                    let response = ctx
-                        .read_input_registers(start_addr, count)
-                        .await.unwrap();
-                    println!("{}", r.description);
-                    match r.data_type {
-                        DataType::Float32 => {
-                            let mut float32s = vec![0.0_f32; (count / 2) as usize];
-                            write_be_u16_into_f32(&response, &mut float32s);
-                            println!("===> {:?}", float32s);
-                        }
-                        DataType::Float64 => {
-                            let mut float64s = vec![0.0_f64; (count / 4) as usize];
-                            write_be_u16_into_f64(&response, &mut float64s);
-                            println!("===> {:?}", float64s);
-                        }
+                    let response = match &r.function_code {
+                        FunctionCode::ReadInputRegisters =>
+                            ctx.read_input_registers(start_addr, count) .await,
+                        FunctionCode::ReadHoldingRegisters =>
+                            ctx.read_holding_registers(start_addr, count).await,
                         _ => todo!()
+                    };
+                    println!("{}", r.description);
+                    match response {
+                        Ok(response) => {
+                            match r.data_type {
+                                DataType::Float32 => {
+                                    let mut float32s = vec![0.0_f32; (count / 2) as usize];
+                                    write_be_u16_into_f32(&response, &mut float32s);
+                                    println!("===> {:?}", float32s);
+                                }
+                                DataType::Float64 => {
+                                    let mut float64s = vec![0.0_f64; (count / 4) as usize];
+                                    write_be_u16_into_f64(&response, &mut float64s);
+                                    println!("===> {:?}", float64s);
+                                }
+                                _ => todo!()
+                            }
+                        },
+                        Err(e) => {
+                            println!("failure: {}", e);
+                        }
                     }
                 }
             }

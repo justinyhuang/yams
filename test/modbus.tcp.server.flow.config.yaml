@@ -8,17 +8,19 @@
   client: ~
   server:
       function_codes: [
-          "ReadHoldingRegisters"
+          "ReadInputRegisters"
       ]
       register_data:
           db: {
               40001: {
                  data_description: "Flowrate",
+                 data_model_type: "HoldingOrInputRegister",
                  data_type: "Float32",
                  data_value: 42.03
                  },
               40003: {
                  data_description: "Resettable Totalizer",
+                 data_model_type: "HoldingOrInputRegister",
                  data_type: "Float64",
                  data_value: 424242.242424
                  }

@@ -1,6 +1,6 @@
 ---
     description: "read golden ratio"
-    function_code: "ReadHoldingRegisters"
+    function_code: "ReadInputRegisters"
     access_start_address: 40003
     access_quantity: 2
     new_values: ~

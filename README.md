@@ -34,13 +34,13 @@ simulator works before running the simulator, including:
 - [ ] implement Modbus RTU support
 - [x] implement support for repeated request(s)
 - [x] implement support for delay before request(s)
-- [ ] implement error handling
+- [x] implement error handling
 - [ ] implement one-shot mode without config files
 - [ ] implement verbose mode to print out more detail/data
 - implement function code support below:
   - [ ] Read Coils
   - [ ] Read Discrete Inputs
-  - [ ] Read Holding Registers
+  - [x] Read Holding Registers
   - [x] Read Input Registers
   - [ ] Write Single Coil
   - [ ] Write Single Register
