@@ -49,7 +49,7 @@ simulator works before running the simulator, including:
   - [ ] Get Comm Event Counter
   - [ ] Get Comm Event Log
   - [ ] Write Multiple Coils
-  - [ ] Write Multiple Registers
+  - [x] Write Multiple Registers
   - [ ] Report Server ID
   - [ ] Read File Record
   - [ ] Write File Record
