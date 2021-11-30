@@ -23,6 +23,7 @@
               request_files: [
                   "test/requests/tcp/read.flowrate.request.yaml",
                   "test/requests/tcp/read.resettable.totalizer.request.yaml",
+                  "test/requests/tcp/write.flowrate.request.yaml",
               ]
           },
       ]

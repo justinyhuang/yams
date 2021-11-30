@@ -7,20 +7,19 @@
       baudrate: ~
   client: ~
   server:
-      function_codes: [
-          "ReadInputRegisters"
-      ]
       register_data:
           db: {
               40001: {
                  data_description: "Pi Value",
                  data_model_type: "InputRegister",
+                 data_access_type: "ReadOnly",
                  data_type: "Float32",
                  data_value: 3.141593,
                  },
               40003: {
                  data_description: "Golden Ratio",
                  data_model_type: "HoldingOrInputRegister",
+                 data_access_type: "ReadOnly",
                  data_type: "Float32",
                  data_value: 1.618034,
                  }

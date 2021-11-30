@@ -2,6 +2,7 @@
 use clap::Parser;
 mod lib;
 use lib::core::config::*;
+use lib::core::types::*;
 use lib::server::*;
 use lib::client::*;
 

@@ -1,6 +1,6 @@
 use clap::{Parser, ArgEnum};
 use serde::Deserialize;
-use anyhow::{Context, Result};
+use anyhow::{self, Context};
 use std::{
     collections::HashMap,
     net::SocketAddr,
@@ -8,39 +8,22 @@ use std::{
     fmt::Write as FmtWrite,
     fs};
 use crate::lib::core::util::*;
-
-#[derive(ArgEnum, Clone, PartialEq, Debug, Deserialize)]
-pub enum DeviceType {
-    Client,
-    Server,
-}
-
-#[derive(ArgEnum, Clone, PartialEq, Debug, Deserialize)]
-pub enum ProtocolType {
-    RTU,
-    TCP,
-}
-
-#[derive(ArgEnum, Clone, PartialEq, Debug, Deserialize)]
-pub enum DataType {
-    Float32,
-    Float64,
-    Uint32,
-    Uint64,
-    Int32,
-    Int64,
-}
+use crate::lib::core::types::*;
 
 #[derive(ArgEnum, Clone, Copy, PartialEq, Debug, Deserialize)]
 pub enum FunctionCode {
-    ReadCoils,
-    ReadDiscreteInputs,
-    ReadHoldingRegisters,
-    ReadInputRegisters,
-    WriteSingleCoil,
-    WriteSingleRegister,
-    ReadExceptionStatus,
-    Diagnostics,
+    ReadCoils = 0x01,
+    ReadDiscreteInputs = 0x02,
+    ReadHoldingRegisters = 0x03,
+    ReadInputRegisters = 0x04,
+    WriteSingleCoil = 0x05,
+    WriteSingleRegister = 0x06,
+    ReadExceptionStatus = 0x07,
+    Diagnostics = 0x08,
+    GetCommeventCounter = 0x0B,
+    GetcommEventLog = 0x0C,
+    WriteMultipleCoils = 0x0F,
+    WriteMultipleRegisters = 0x10
 }
 
 impl FunctionCode {
@@ -48,17 +31,6 @@ impl FunctionCode {
     {
         *self as u8 + 0x80
     }
-}
-
-#[derive(ArgEnum, Clone, Debug, PartialEq, Deserialize)]
-pub enum DataModelType {
-    DiscretesInput,
-    Coils,
-    DiscretesInputOrCoils,
-    InputRegister,
-    HoldingRegister,
-    HoldingOrInputRegister,
-    AllType,
 }
 
 #[derive(Parser, Debug)]
@@ -84,7 +56,7 @@ pub struct ModbusRequest {
     /// the number of registers/coils to access
     pub access_quantity: u16,
     /// the values to write
-    pub new_values: Option<Vec<u16>>,
+    pub new_values: Option<Vec<String>>,
     /// repeat times (0xFFFF to repeat indefinitely)
     pub repeat_times: Option<u16>,
     /// delay before request, in 100 ms
@@ -125,6 +97,8 @@ pub struct ModbusRegisterData {
     pub data_description: String,
     /// data model type
     pub data_model_type: DataModelType,
+    /// data access type
+    pub data_access_type: Option<DataAccessType>,
     /// data type
     pub data_type: DataType,
     /// data value in a string
@@ -134,30 +108,72 @@ pub struct ModbusRegisterData {
 impl ModbusRegisterData {
     pub fn is_function_code_supported(&self, function_code: FunctionCode) -> bool
     {
-        match self.data_model_type {
+        let access_type = self.data_access_type.or_else(|| Some(DataAccessType::ReadWrite)).unwrap();
+        match (self.data_model_type, access_type) {
             // DiscretesInput =>
             // Coils =>
             // DiscretesInputOrCoils =>
-            DataModelType::InputRegister =>
+            (DataModelType::InputRegister, DataAccessType::ReadOnly) =>
                 if function_code == FunctionCode::ReadInputRegisters {
                     true
                 } else {
                     false
                 },
-            DataModelType::HoldingRegister =>
+            (DataModelType::InputRegister, DataAccessType::WriteOnly) =>
+                if function_code == FunctionCode::WriteMultipleRegisters {
+                    true
+                } else {
+                    false
+                },
+            (DataModelType::InputRegister, DataAccessType::ReadWrite) =>
+                if function_code == FunctionCode::WriteMultipleRegisters ||
+                   function_code == FunctionCode::ReadInputRegisters {
+                    true
+                } else {
+                    false
+                },
+            (DataModelType::HoldingRegister, DataAccessType::ReadOnly) =>
                 if function_code == FunctionCode::ReadHoldingRegisters {
                     true
                 } else {
                     false
                 },
-            DataModelType::HoldingOrInputRegister =>
+            (DataModelType::HoldingRegister, DataAccessType::WriteOnly) =>
+                if function_code == FunctionCode::WriteMultipleRegisters {
+                    true
+                } else {
+                    false
+                },
+            (DataModelType::HoldingRegister, DataAccessType::ReadWrite) =>
+                if function_code == FunctionCode::WriteMultipleRegisters ||
+                   function_code == FunctionCode::ReadHoldingRegisters {
+                    true
+                } else {
+                    false
+                },
+            (DataModelType::HoldingOrInputRegister, DataAccessType::ReadOnly) =>
                 if function_code == FunctionCode::ReadHoldingRegisters ||
                    function_code == FunctionCode::ReadInputRegisters {
                     true
                 } else {
                     false
                 },
-            DataModelType::AllType => true,
+            (DataModelType::HoldingOrInputRegister, DataAccessType::WriteOnly) =>
+                if function_code == FunctionCode::WriteMultipleRegisters {
+                    true
+                } else {
+                    false
+                },
+            (DataModelType::HoldingOrInputRegister, DataAccessType::ReadWrite) =>
+                if function_code == FunctionCode::WriteMultipleRegisters ||
+                   function_code == FunctionCode::ReadInputRegisters   ||
+                   function_code == FunctionCode::ReadHoldingRegisters {
+                    true
+                } else {
+                    false
+                },
+            (DataModelType::AllType, DataAccessType::ReadWrite) =>
+                true,
             _ => false,
         }
     }
@@ -167,27 +183,43 @@ impl ModbusRegisterData {
         match &self.data_type {
             DataType::Float32 => {
                 if let Ok(value) = self.data_value.parse::<f32>() {
-                    let mut tmp = [0_u16; 2];
-                    write_be_f32_into_u16(value, &mut tmp);
-                    for idx in 0..2 {
-                        registers.push(tmp[idx]);
-                    }
+                    let tmp = write_be_f32_into_u16(value);
+                    registers.extend(tmp);
                     return 2;
                 }
             }
             DataType::Float64 => {
                 if let Ok(value) = self.data_value.parse::<f64>() {
-                    let mut tmp = [0_u16; 4];
-                    write_be_f64_into_u16(value, &mut tmp);
-                    for idx in 0..4 {
-                        registers.push(tmp[idx]);
-                    }
+                    let tmp = write_be_f64_into_u16(value);
+                    registers.extend(tmp);
                     return 4;
                 }
             }
             _ => todo!()
         }
         return 0;
+    }
+
+    pub fn read_from_be_u16(&mut self, it: &mut std::iter::Peekable<std::slice::Iter<u16>>) -> usize
+    {
+        match &self.data_type {
+            DataType::Float32 => {
+                let mut tmp = [0_u16; 2];
+                for idx in 0..2 {
+                    if let Some(data) = it.next() {
+                        tmp[idx] = *data;
+                    } else {
+                        return 0;
+                    }
+                }
+                self.data_value = write_be_u16_into_f32(&tmp).to_string();
+                return 2;
+            }
+            DataType::Float64 => {
+                    return 4;
+            }
+            _ => todo!()
+        }
     }
 }
 
@@ -197,7 +229,31 @@ pub struct ModbusRegisterDatabase {
 }
 
 impl ModbusRegisterDatabase {
-    pub fn request_u16_registers(&self, register_addr: u16, registers_to_write: u16, function_code: FunctionCode) -> Result<Vec<u16>, ModbusExceptionCode>
+    pub fn update_u16_registers(&mut self, register_addr: u16, values: Vec<u16>, function_code: FunctionCode) -> anyhow::Result<usize, ModbusExceptionCode>
+    {
+        let mut value_it = values.iter().peekable();
+        let mut total_updated = 0_usize;
+        let mut addr = register_addr;
+        while let Some(data) = self.db.get_mut(&addr) {
+            if data.is_function_code_supported(function_code) {
+                let registers_updated = data.read_from_be_u16(&mut value_it);
+                if registers_updated != 0 {
+                    addr += registers_updated as u16;
+                    total_updated += registers_updated;
+                } else {
+                    return Err(ModbusExceptionCode::IllegalDataValue);
+                }
+                if value_it.peek().is_none() {
+                    return Ok(total_updated);
+                }
+            } else {
+                return Err(ModbusExceptionCode::IllegalFunction);
+            }
+        }
+        return Err(ModbusExceptionCode::IllegalDataAddress);
+    }
+
+    pub fn request_u16_registers(&self, register_addr: u16, registers_to_write: u16, function_code: FunctionCode) -> anyhow::Result<Vec<u16>, ModbusExceptionCode>
     {
         let mut registers = Vec::<u16>::new();
         let mut count = registers_to_write as usize;
@@ -250,8 +306,6 @@ pub struct ModbusClientConfig {
 
 #[derive(Debug, Deserialize)]
 pub struct ModbusServerConfig {
-    /// the function codes supported by the server
-    pub function_codes: Vec<FunctionCode>,
     /// the register database
     pub register_data: ModbusRegisterDatabase,
 }
@@ -266,13 +320,13 @@ pub struct ModbusDeviceConfig {
     pub server: Option<ModbusServerConfig>,
 }
 
-fn parse_config_str(config_str: &str) -> Result<ModbusDeviceConfig>
+fn parse_config_str(config_str: &str) -> anyhow::Result<ModbusDeviceConfig>
 {
     serde_yaml::from_str(&config_str)
         .with_context(|| format!("failed to parse the config string"))
 }
 
-pub fn configure(opts: &Opts) -> Result<ModbusDeviceConfig>
+pub fn configure(opts: &Opts) -> anyhow::Result<ModbusDeviceConfig>
 {
     if let Some(config_file) = &opts.config_file {
         match fs::read_to_string(config_file) {

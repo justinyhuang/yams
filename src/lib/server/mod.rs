@@ -2,10 +2,11 @@ use futures::future;
 
 use tokio_modbus::prelude::*;
 use tokio_modbus::server::{self, Service};
+use std::sync::{Arc, Mutex};
 use crate::*;
 
 struct MbServer {
-    db: ModbusRegisterDatabase,
+    db: Arc<Mutex<ModbusRegisterDatabase>>,
 }
 
 impl Service for MbServer {
@@ -18,9 +19,10 @@ impl Service for MbServer {
         /* since the tokio-mobus crate doesn't support server sending exception response (yet),
          * the custom response type is used as a workaround to send exception response below.
          */
+        let mut db = self.db.lock().unwrap();
         match req {
             Request::ReadInputRegisters(addr, cnt) =>
-                match self.db.request_u16_registers(addr, cnt, FunctionCode::ReadInputRegisters) {
+                match (*db).request_u16_registers(addr, cnt, FunctionCode::ReadInputRegisters) {
                     Ok(registers) =>
                         future::ready(Ok(Response::ReadInputRegisters(registers))),
                     Err(e) =>
@@ -28,13 +30,21 @@ impl Service for MbServer {
                                                           vec![e as u8]))),
             },
             Request::ReadHoldingRegisters(addr, cnt) =>
-                match self.db.request_u16_registers(addr, cnt, FunctionCode::ReadHoldingRegisters) {
+                match (*db).request_u16_registers(addr, cnt, FunctionCode::ReadHoldingRegisters) {
                     Ok(registers) =>
                         future::ready(Ok(Response::ReadHoldingRegisters(registers))),
                     Err(e) =>
                         future::ready(Ok(Response::Custom(FunctionCode::ReadHoldingRegisters.get_exception_code(),
                                                           vec![e as u8]))),
             },
+            Request::WriteMultipleRegisters(addr, values) =>
+                match (*db).update_u16_registers(addr, values, FunctionCode::WriteMultipleRegisters) {
+                    Ok(reg_num) =>
+                        future::ready(Ok(Response::WriteMultipleRegisters(addr, reg_num as u16))),
+                    Err(e) =>
+                        future::ready(Ok(Response::Custom(FunctionCode::WriteMultipleRegisters.get_exception_code(),
+                                                          vec![e as u8]))),
+                }
             _ => unimplemented!(),
         }
     }
@@ -51,7 +61,7 @@ pub async fn start_modbus_server(config: ModbusDeviceConfig) -> Result<(), Box<d
                         .ok_or("Server config doesn't exist")?
                         .register_data;
     let server = server::tcp::Server::new(ip_addr);
-    server.serve(move || Ok(MbServer {db: register_data.clone()})).await.unwrap();
+    server.serve(move || Ok(MbServer {db: Arc::new(Mutex::new(register_data.clone()))})).await.unwrap();
     Ok(())
 }
 

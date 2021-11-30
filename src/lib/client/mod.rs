@@ -7,6 +7,7 @@ use crate::{ModbusDeviceConfig,
             ModbusRequest};
 use crate::lib::core::util::*;
 use crate::lib::core::config::*;
+use crate::lib::core::types::*;
 
 pub async fn start_modbus_client(config: ModbusDeviceConfig) -> Result<(), Box<dyn std::error::Error>>
 {
@@ -49,29 +50,45 @@ pub async fn start_modbus_client(config: ModbusDeviceConfig) -> Result<(), Box<d
                     sleep(Duration::from_millis(100 * delay_in_100ms)).await;
                     let response = match &r.function_code {
                         FunctionCode::ReadInputRegisters =>
-                            ctx.read_input_registers(start_addr, count) .await,
+                            ModbusRequestReturnType::ResultWithU16Vec(
+                                ctx.read_input_registers(start_addr, count).await),
                         FunctionCode::ReadHoldingRegisters =>
-                            ctx.read_holding_registers(start_addr, count).await,
+                            ModbusRequestReturnType::ResultWithU16Vec(
+                                ctx.read_holding_registers(start_addr, count).await),
+                        FunctionCode::WriteMultipleRegisters => {
+                            let new_values = r.new_values.as_ref().expect("no new value for write");
+                            let mut data = Vec::<u16>::new();
+                            match r.data_type {
+                                DataType::Float32 => {
+                                    for v in new_values {
+                                        if let Ok(f) = v.parse::<f32>() {
+                                            data.extend(write_be_f32_into_u16(f));
+                                        }
+                                    }
+                                },
+                                _ => todo!()
+                            }
+                            ModbusRequestReturnType::ResultWithNothing(
+                                ctx.write_multiple_registers(start_addr, &data).await)
+                        },
                         _ => todo!()
                     };
                     println!("{}", r.description);
                     match response {
-                        Ok(response) => {
+                        ModbusRequestReturnType::ResultWithU16Vec(Ok(response)) => {
                             match r.data_type {
-                                DataType::Float32 => {
-                                    let mut float32s = vec![0.0_f32; (count / 2) as usize];
-                                    write_be_u16_into_f32(&response, &mut float32s);
-                                    println!("===> {:?}", float32s);
-                                }
-                                DataType::Float64 => {
-                                    let mut float64s = vec![0.0_f64; (count / 4) as usize];
-                                    write_be_u16_into_f64(&response, &mut float64s);
-                                    println!("===> {:?}", float64s);
-                                }
+                                DataType::Float32 =>
+                                    println!("===> {:?}", write_be_u16_into_f32(response.as_slice())),
+                                DataType::Float64 =>
+                                    println!("===> {:?}", write_be_u16_into_f64(&response)),
                                 _ => todo!()
                             }
                         },
-                        Err(e) => {
+                        ModbusRequestReturnType::ResultWithNothing(Ok(())) => {
+                            println!("===> done");
+                        }
+                        ModbusRequestReturnType::ResultWithNothing(Err(e)) |
+                        ModbusRequestReturnType::ResultWithU16Vec(Err(e)) => {
                             println!("failure: {}", e);
                         }
                     }
