@@ -3,7 +3,9 @@ use futures::future;
 use tokio_modbus::prelude::*;
 use tokio_modbus::server::{self, Service};
 use std::sync::{Arc, Mutex};
-use crate::*;
+use yams_core::{
+    config::*,
+    util::*};
 
 struct MbServer {
     db: Arc<Mutex<ModbusRegisterDatabase>>,
@@ -52,6 +54,7 @@ impl Service for MbServer {
 
 pub async fn start_modbus_server(config: ModbusDeviceConfig) -> Result<(), Box<dyn std::error::Error>>
 {
+    print_configuration(&config);
     let ip_addr = config
                   .common
                   .device_ip_address

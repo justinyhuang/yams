@@ -1,0 +1,13 @@
+[package]
+name = "yams-client"
+version = "0.1.0"
+authors = ["Justin Huang <justin.y.huang@live.com>"]
+license = "MIT/Apache-2.0"
+edition = "2021"
+
+[dependencies]
+serde_yaml = "0.8"
+tokio-modbus = { version = "0.5.1", features = ["server", "tcp", "tcp-server-unstable"] }
+tokio = { version = "1", features = ["net", "macros", "io-util", "rt", "time"] }
+
+yams-core = { path = "../core" }

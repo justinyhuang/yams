@@ -5,16 +5,18 @@ use tokio::time::{sleep, Duration};
 
 use crate::{ModbusDeviceConfig,
             ModbusRequest};
-use crate::lib::core::util::*;
-use crate::lib::core::config::*;
-use crate::lib::core::types::*;
+use yams_core::{
+    config::*,
+    util::*,
+    types::*};
 
 pub async fn start_modbus_client(config: ModbusDeviceConfig) -> Result<(), Box<dyn std::error::Error>>
 {
-    let client_requests = config.client.ok_or("Client config doesn't exist")?.requests;
+    print_configuration(&config);
+    let client_requests = config.client.ok_or("Client config missing")?.requests;
     for request in client_requests {
         let ip_addr = request.server_address
-            .ok_or("Server IP address doesn't exist")?;
+            .ok_or("Server IP address missing in config")?;
         let mut rlist = Vec::<ModbusRequest>::new();
         for request_file in request.request_files {
             if let Ok(request_str) = fs::read_to_string(&request_file) {
@@ -28,7 +30,7 @@ pub async fn start_modbus_client(config: ModbusDeviceConfig) -> Result<(), Box<d
             }
         }
 
-        let mut ctx = tcp::connect(ip_addr).await.unwrap();
+        let mut ctx = tcp::connect(ip_addr).await?;
         let mut section_repeat_times = request.repeat_times.or_else(|| Some(1)).unwrap();
         #[allow(unused_parens)]
         let section_indefinite_loop = (section_repeat_times == REPEAT_TIME_INDEFINITE);

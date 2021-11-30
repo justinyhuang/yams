@@ -7,8 +7,8 @@ use std::{
     path::PathBuf,
     fmt::Write as FmtWrite,
     fs};
-use crate::lib::core::util::*;
-use crate::lib::core::types::*;
+use crate::util::*;
+use crate::types::*;
 
 #[derive(ArgEnum, Clone, Copy, PartialEq, Debug, Deserialize)]
 pub enum FunctionCode {
@@ -73,8 +73,8 @@ pub struct ModbusCommonConfig {
     pub device_type: DeviceType,
     /// the serial port when using Modbus RTU
     pub device_port: Option<String>,
-    /// the address of the client/server
-    pub device_address: Option<u8>,
+    /// the id of the client/server
+    pub device_id: Option<u8>,
     /// the socket address when using Modbus TCP
     pub device_ip_address: Option<SocketAddr>,
     /// the baudrate when using Modbus RTU

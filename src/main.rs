@@ -1,10 +1,10 @@
-/* Yet Another Modbus simulator */
+/* Yet Another Modbus Simulator */
 use clap::Parser;
-mod lib;
-use lib::core::config::*;
-use lib::core::types::*;
-use lib::server::*;
-use lib::client::*;
+use yams_core::{
+    config::*,
+    types::*};
+use yams_server::*;
+use yams_client::*;
 
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -12,9 +12,13 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config = configure(&opts).expect("failed to load the configuraion");
 
     if config.common.device_type == DeviceType::Server {
-        start_modbus_server(config).await.unwrap();
+        if let Err(e) = start_modbus_server(config).await {
+            println!("exit with error: {}", e);
+        }
     } else {
-        start_modbus_client(config).await.unwrap();
+        if let Err(e) = start_modbus_client(config).await {
+            println!("exit with error: {}", e);
+        }
     }
     Ok(())
 }

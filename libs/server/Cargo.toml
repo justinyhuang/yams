@@ -1,0 +1,12 @@
+[package]
+name = "yams-server"
+version = "0.1.0"
+authors = ["Justin Huang <justin.y.huang@live.com>"]
+license = "MIT/Apache-2.0"
+edition = "2021"
+
+[dependencies]
+tokio-modbus = { version = "0.5.1", features = ["server", "tcp", "tcp-server-unstable"] }
+futures = "0.3"
+
+yams-core = { path = "../core" }

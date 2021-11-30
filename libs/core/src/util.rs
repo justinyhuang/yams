@@ -1,4 +1,28 @@
+use crate::config::*;
+use crate::types::*;
 use std::mem::transmute;
+
+pub fn print_configuration(config: &ModbusDeviceConfig)
+{
+    if let Some(_server) = &config.server {
+        println!("Modbus Server");
+        print!("runs {:?} ", config.common.protocol_type);
+        match config.common.protocol_type {
+            ProtocolType::TCP => {
+                println!("@ {}", config.common.device_ip_address.unwrap());
+            },
+            ProtocolType::RTU => {
+                println!("@ {} with id {}",
+                         config.common.device_port.as_ref().unwrap(),
+                         config.common.device_id.as_ref().unwrap());
+            }
+        }
+    }
+    if let Some(_client) = &config.client {
+        println!("Modbus Client");
+    }
+    println!("----------------");
+}
 
 pub fn write_be_u16_into_f32(src: &[u16]) -> f32
 {
