@@ -1,7 +1,8 @@
+use std::mem::transmute;
+use colored::*;
 use crate::{
     config::*,
     types::*};
-use std::mem::transmute;
 
 pub fn print_configuration(config: &ModbusDeviceConfig)
 {
@@ -22,7 +23,21 @@ pub fn print_configuration(config: &ModbusDeviceConfig)
     if let Some(_client) = &config.client {
         println!("Modbus Client");
     }
-    println!("----------------");
+    println!("verbose mode: {:?}", config.verbose_mode);
+}
+
+pub fn vprint(s: &str, c: &str, v: bool)
+{
+    if v {
+        print!("{}", s.color(c));
+    }
+}
+
+pub fn vprintln(s: &str, c: &str, v: bool)
+{
+    if v {
+        println!("{}", s.color(c));
+    }
 }
 
 pub fn write_be_u16_into_f32(src: &[u16]) -> f32

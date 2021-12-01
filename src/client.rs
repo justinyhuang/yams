@@ -1,5 +1,5 @@
 use std::fs;
-
+use colored::*;
 use tokio_modbus::prelude::*;
 use tokio::time::{sleep, Duration};
 
@@ -48,13 +48,22 @@ pub async fn start_modbus_client(config: ModbusDeviceConfig) -> Result<(), Box<d
                         file_repeat_times -= 1;
                     }
                     sleep(Duration::from_millis(100 * delay_in_100ms)).await;
+                    println!("{}", ">>>>".blue());
                     let response = match &r.function_code {
-                        FunctionCode::ReadInputRegisters =>
+                        FunctionCode::ReadInputRegisters => {
+                            vprintln(&format!("reading {} input registers starting at {}", count, start_addr),
+                                     "white",
+                                     config.verbose_mode);
                             ModbusRequestReturnType::ResultWithU16Vec(
-                                ctx.read_input_registers(start_addr, count).await),
-                        FunctionCode::ReadHoldingRegisters =>
+                                ctx.read_input_registers(start_addr, count).await)
+                        },
+                        FunctionCode::ReadHoldingRegisters => {
+                            vprintln(&format!("reading {} holding registers starting at {}", count, start_addr),
+                                     "white",
+                                     config.verbose_mode);
                             ModbusRequestReturnType::ResultWithU16Vec(
-                                ctx.read_holding_registers(start_addr, count).await),
+                                ctx.read_holding_registers(start_addr, count).await)
+                        },
                         FunctionCode::WriteMultipleRegisters => {
                             let new_values = r.new_values.as_ref().expect("no new value for write");
                             let mut data = Vec::<u16>::new();
@@ -68,28 +77,34 @@ pub async fn start_modbus_client(config: ModbusDeviceConfig) -> Result<(), Box<d
                                 },
                                 _ => todo!()
                             }
+                            vprintln(&format!("writing registers starting at {} with values:", start_addr),
+                                     "white",
+                                     config.verbose_mode);
+                            vprintln(&format!("{:?}", &data),
+                                     "white",
+                                     config.verbose_mode);
                             ModbusRequestReturnType::ResultWithNothing(
                                 ctx.write_multiple_registers(start_addr, &data).await)
                         },
                         _ => todo!()
                     };
-                    println!("{}", r.description);
+                    println!("{}", r.description.white());
                     match response {
                         ModbusRequestReturnType::ResultWithU16Vec(Ok(response)) => {
                             match r.data_type {
                                 DataType::Float32 =>
-                                    println!("===> {:?}", write_be_u16_into_f32(response.as_slice())),
+                                    println!("{}", format!("===> {:?}", write_be_u16_into_f32(response.as_slice())).white()),
                                 DataType::Float64 =>
-                                    println!("===> {:?}", write_be_u16_into_f64(&response)),
+                                    println!("{}", format!("===> {:?}", write_be_u16_into_f64(&response)).white()),
                                 _ => todo!()
                             }
                         },
                         ModbusRequestReturnType::ResultWithNothing(Ok(())) => {
-                            println!("===> done");
+                            println!("{}", "===> done".white());
                         }
                         ModbusRequestReturnType::ResultWithNothing(Err(e)) |
                         ModbusRequestReturnType::ResultWithU16Vec(Err(e)) => {
-                            println!("failure: {}", e);
+                            println!("{}{}", "failure".red(), format!(": {}", e).white());
                         }
                     }
                 }

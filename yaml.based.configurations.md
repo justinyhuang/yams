@@ -125,6 +125,7 @@
               Defines how many times this request block shoud be repeated.
               To repeat indefinetely use 0xFFFF.
               This is an optional configurable item, and when not used just leave it as "~", or do not specify this item.
+              When not specified the repeat_times is default to 1.
               Example: 25, or 0xFFFF
 
               request_files: [ >
@@ -187,6 +188,7 @@ A request YAML file would look like:
     Specifies the number of times to repeat this single request.
     To repeat indefinetely use 0xFFFF.
     This is an optional configurable item, and when not used just leave it as "~", or do not specify this item.
+    When not specified the repeat_times is default to 1.
     Example: 25, or 0xFFFF
 
     delay: >
