@@ -1,5 +1,6 @@
-use crate::config::*;
-use crate::types::*;
+use crate::{
+    config::*,
+    types::*};
 use std::mem::transmute;
 
 pub fn print_configuration(config: &ModbusDeviceConfig)

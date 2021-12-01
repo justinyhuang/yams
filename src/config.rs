@@ -7,8 +7,9 @@ use std::{
     path::PathBuf,
     fmt::Write as FmtWrite,
     fs};
-use crate::util::*;
-use crate::types::*;
+use crate::{
+    util::*,
+    types::*};
 
 #[derive(ArgEnum, Clone, Copy, PartialEq, Debug, Deserialize)]
 pub enum FunctionCode {

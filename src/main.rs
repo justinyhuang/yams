@@ -1,10 +1,17 @@
 /* Yet Another Modbus Simulator */
+mod config;
+mod types;
+mod util;
+mod client;
+mod server;
 use clap::Parser;
-use yams_core::{
+
+use crate::{
+    types::*,
     config::*,
-    types::*};
-use yams_server::*;
-use yams_client::*;
+    client::*,
+    server::*,
+};
 
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
