@@ -47,3 +47,36 @@ pub enum ModbusRequestReturnType {
     ResultWithNothing(Result<(), io::Error>),
 }
 
+#[derive(ArgEnum, Clone, Copy, PartialEq, Debug, Deserialize)]
+pub enum FunctionCode {
+    ReadCoils = 0x01,
+    ReadDiscreteInputs = 0x02,
+    ReadHoldingRegisters = 0x03,
+    ReadInputRegisters = 0x04,
+    WriteSingleCoil = 0x05,
+    WriteSingleRegister = 0x06,
+    ReadExceptionStatus = 0x07,
+    Diagnostics = 0x08,
+    GetCommeventCounter = 0x0B,
+    GetcommEventLog = 0x0C,
+    WriteMultipleCoils = 0x0F,
+    WriteMultipleRegisters = 0x10
+}
+
+impl FunctionCode {
+    pub fn get_exception_code(&self) -> u8
+    {
+        *self as u8 + 0x80
+    }
+}
+
+/* The tokio-modbus crate doesn't make the exception code public
+ * hence the definitions below
+ */
+#[derive(Debug)]
+pub enum ModbusExceptionCode {
+    IllegalFunction = 0x01,
+    IllegalDataAddress = 0x02,
+    IllegalDataValue = 0x03,
+}
+

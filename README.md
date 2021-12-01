@@ -2,7 +2,6 @@
 
 ![YAMS](yams.png)
 
-
 A simulator for Modbus client/server that supports YAML based configuration and behavior definition, with pure Rust.
 
 YAMS supports Modbus device configuration and behavior definition via YAML files. This means one can predefine how the
@@ -23,6 +22,11 @@ simulator works before running the simulator, including:
     - flexible request organization
     - set and show measurements in its own type: 32-bit float
 
+## Install
+
+- Make sure Cargo is installed. See the [install page](rust-lang.org/tools/install) for details.
+- Install YAMS by `cargo install yams`.
+
 ## Quick Demo:
 
 [DEMO](https://asciinema.org/a/452710)
@@ -39,7 +43,8 @@ See [YAML based Configurations](yaml.based.configurations.md)
 - [x] implement support for delay before request(s)
 - [x] implement error handling
 - [ ] implement one-shot mode without config files
-- [ ] implement verbose mode to print out more detail/data
+- [x] implement verbose mode to print out more detail/data
+- [ ] implement request/response counts printout
 - implement function code support below:
   - [ ] Read Coils
   - [ ] Read Discrete Inputs
