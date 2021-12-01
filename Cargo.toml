@@ -20,9 +20,5 @@ tokio-modbus = { version = "0.5.1", features = ["server", "tcp", "tcp-server-uns
 futures = "0.3"
 tokio = { version = "1", features = ["net", "macros", "io-util", "rt", "time"] }
 
-yams-core = {version = "0.1", path = "libs/core"}
-yams-client = {version = "0.1", path = "libs/client"}
-yams-server = {version = "0.1", path = "libs/server"}
-
 [dev-dependencies]
 float-cmp = "0.9.0"

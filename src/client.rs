@@ -3,9 +3,7 @@ use std::fs;
 use tokio_modbus::prelude::*;
 use tokio::time::{sleep, Duration};
 
-use crate::{ModbusDeviceConfig,
-            ModbusRequest};
-use yams_core::{
+use crate::{
     config::*,
     util::*,
     types::*};

@@ -3,7 +3,7 @@ use futures::future;
 use tokio_modbus::prelude::*;
 use tokio_modbus::server::{self, Service};
 use std::sync::{Arc, Mutex};
-use yams_core::{
+use crate::{
     config::*,
     util::*};
 
