@@ -52,14 +52,12 @@ pub async fn start_modbus_client(config: ModbusDeviceConfig) -> Result<(), Box<d
                     let response = match &r.function_code {
                         FunctionCode::ReadInputRegisters => {
                             vprintln(&format!("reading {} input registers starting at {}", count, start_addr),
-                                     "white",
                                      config.verbose_mode);
                             ModbusRequestReturnType::ResultWithU16Vec(
                                 ctx.read_input_registers(start_addr, count).await)
                         },
                         FunctionCode::ReadHoldingRegisters => {
                             vprintln(&format!("reading {} holding registers starting at {}", count, start_addr),
-                                     "white",
                                      config.verbose_mode);
                             ModbusRequestReturnType::ResultWithU16Vec(
                                 ctx.read_holding_registers(start_addr, count).await)
@@ -78,33 +76,31 @@ pub async fn start_modbus_client(config: ModbusDeviceConfig) -> Result<(), Box<d
                                 _ => todo!()
                             }
                             vprintln(&format!("writing registers starting at {} with values:", start_addr),
-                                     "white",
                                      config.verbose_mode);
                             vprintln(&format!("{:?}", &data),
-                                     "white",
                                      config.verbose_mode);
                             ModbusRequestReturnType::ResultWithNothing(
                                 ctx.write_multiple_registers(start_addr, &data).await)
                         },
                         _ => todo!()
                     };
-                    println!("{}", r.description.white());
+                    println!("{}", r.description.normal());
                     match response {
                         ModbusRequestReturnType::ResultWithU16Vec(Ok(response)) => {
                             match r.data_type {
                                 DataType::Float32 =>
-                                    println!("{}", format!("===> {:?}", write_be_u16_into_f32(response.as_slice())).white()),
+                                    println!("{}", format!("===> {:?}", write_be_u16_into_f32(response.as_slice())).normal()),
                                 DataType::Float64 =>
-                                    println!("{}", format!("===> {:?}", write_be_u16_into_f64(&response)).white()),
+                                    println!("{}", format!("===> {:?}", write_be_u16_into_f64(&response)).normal()),
                                 _ => todo!()
                             }
                         },
                         ModbusRequestReturnType::ResultWithNothing(Ok(())) => {
-                            println!("{}", "===> done".white());
+                            println!("{}", "===> done".normal());
                         }
                         ModbusRequestReturnType::ResultWithNothing(Err(e)) |
                         ModbusRequestReturnType::ResultWithU16Vec(Err(e)) => {
-                            println!("{}{}", "failure".red(), format!(": {}", e).white());
+                            println!("{}{}", "failure".red(), format!(": {}", e).normal());
                         }
                     }
                 }

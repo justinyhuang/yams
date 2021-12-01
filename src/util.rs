@@ -33,10 +33,10 @@ pub fn vprint(s: &str, c: &str, v: bool)
     }
 }
 
-pub fn vprintln(s: &str, c: &str, v: bool)
+pub fn vprintln(s: &str, v: bool)
 {
     if v {
-        println!("{}", s.color(c));
+        println!("{}", s);
     }
 }
 

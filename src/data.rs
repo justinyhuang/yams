@@ -1,6 +1,5 @@
 use serde::Deserialize;
 use anyhow;
-use colored::*;
 use std::{
     collections::HashMap,
     fmt::Write as FmtWrite};
@@ -185,7 +184,7 @@ impl ModbusRegisterDatabase {
                     count -= registers_written;
                     addr += registers_written as u16;
                     if count == 0 {
-                        print!("{}", printout.white());
+                        print!("{}", printout);
                         return Ok(registers);
                     }
                 } else {
