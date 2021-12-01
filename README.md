@@ -25,7 +25,10 @@ simulator works before running the simulator, including:
 
 ## Quick Demo:
 
-[DEMO 1](https://asciinema.org/a/452710)
+[DEMO](https://asciinema.org/a/452710)
+
+## Configurable Items
+See [YAML based Configurations](yaml.based.configurations.md)
 
 ## Todo:
 
