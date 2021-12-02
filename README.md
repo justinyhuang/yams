@@ -44,7 +44,7 @@ See [YAML based Configurations](yaml.based.configurations.md)
 - [x] implement error handling
 - [ ] implement one-shot mode without config files
 - [x] implement verbose mode to print out more detail/data
-- [ ] implement request/response counts printout
+- [x] implement request/response counts printout
 - implement function code support below:
   - [ ] Read Coils
   - [ ] Read Discrete Inputs

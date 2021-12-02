@@ -12,6 +12,7 @@ pub async fn start_modbus_client(config: ModbusDeviceConfig) -> Result<(), Box<d
 {
     print_configuration(&config);
     let client_requests = config.client.ok_or("Client config missing")?.requests;
+    let mut counter: u16 = 0;
     for request in client_requests {
         let ip_addr = request.server_address
             .ok_or("Server IP address missing in config")?;
@@ -48,7 +49,8 @@ pub async fn start_modbus_client(config: ModbusDeviceConfig) -> Result<(), Box<d
                         file_repeat_times -= 1;
                     }
                     sleep(Duration::from_millis(100 * delay_in_100ms)).await;
-                    println!("{}", ">>>>".blue());
+                    counter += 1;
+                    println!("{}", format!(">>{:04}>>", counter).blue());
                     let response = match &r.function_code {
                         FunctionCode::ReadInputRegisters => {
                             vprintln(&format!("reading {} input registers starting at {}", count, start_addr),

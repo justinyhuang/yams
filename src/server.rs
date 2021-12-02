@@ -12,6 +12,7 @@ use crate::{
 struct MbServer {
     db: Arc<Mutex<ModbusRegisterDatabase>>,
     verbose_mode: bool,
+    counter: Arc<Mutex<u16>>,
 }
 
 impl Service for MbServer {
@@ -25,7 +26,9 @@ impl Service for MbServer {
          * the custom response type is used as a workaround to send exception response below.
          */
         let mut db = self.db.lock().unwrap();
-        println!("{}", ">>>>".blue());
+        let mut counter = self.counter.lock().unwrap();
+        *counter += 1;
+        println!("{}", format!(">>{:04}>>", *counter).blue());
         vprintln(&format!("received request {:?}", req), self.verbose_mode);
         match req {
             Request::ReadInputRegisters(addr, cnt) =>
@@ -90,6 +93,7 @@ pub async fn start_modbus_server(config: ModbusDeviceConfig) -> Result<(), Box<d
     server.serve(move || Ok(MbServer{
                                      db: Arc::new(Mutex::new(register_data.clone())),
                                      verbose_mode: config.verbose_mode,
+                                     counter: Arc::new(Mutex::new(0)),
                                     })).await.unwrap();
     Ok(())
 }
