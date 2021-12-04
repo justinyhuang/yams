@@ -1,5 +1,4 @@
 use std::mem::transmute;
-use colored::*;
 use crate::{
     config::*,
     types::*};
@@ -7,29 +6,29 @@ use crate::{
 pub fn print_configuration(config: &ModbusDeviceConfig)
 {
     if let Some(_server) = &config.server {
-        println!("Modbus Server");
+        println!("Modbus Server (ID: {})", config.common.device_id);
         print!("runs {:?} ", config.common.protocol_type);
         match config.common.protocol_type {
             ProtocolType::TCP => {
                 println!("@ {}", config.common.device_ip_address.unwrap());
             },
             ProtocolType::RTU => {
-                println!("@ {} with id {}",
-                         config.common.device_port.as_ref().unwrap(),
-                         config.common.device_id.as_ref().unwrap());
+                println!("@ {}",
+                         config.common.device_port.as_ref().unwrap());
             }
         }
     }
     if let Some(_client) = &config.client {
-        println!("Modbus Client");
+        println!("Modbus Client (ID: {})", config.common.device_id);
+        print!("runs {:?} ", config.common.protocol_type);
     }
     println!("verbose mode: {:?}", config.verbose_mode);
 }
 
-pub fn vprint(s: &str, c: &str, v: bool)
+pub fn vprint(s: &str, c: ansi_term::Color, v: bool)
 {
     if v {
-        print!("{}", s.color(c));
+        print!("{}", c.paint(s));
     }
 }
 

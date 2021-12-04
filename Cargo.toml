@@ -14,11 +14,15 @@ edition = "2021"
 clap = "3.0.0-beta.5"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
-colored = "2"
 anyhow = "1.0.48"
-tokio-modbus = { version = "0.5.1", features = ["server", "tcp", "tcp-server-unstable"] }
+# there is a bug in tokio-modbus parsing the read-multiple-register request
+# I have submitted a PR but until it is merged and released I will just use my fork
+#tokio-modbus = { version = "0.5.1", features = ["server", "tcp", "tcp-server-unstable"] }
+tokio-modbus = { git = "https://github.com/justinyhuang/tokio-modbus", branch = "fix.write.multiple.registers.request.parse", features = ["server", "tcp", "tcp-server-unstable"] }
 futures = "0.3"
 tokio = { version = "1", features = ["net", "macros", "io-util", "rt", "time"] }
+tokio-serial = "5.4.1"
+ansi_term = "0.12.1"
 
 [dev-dependencies]
 float-cmp = "0.9.0"

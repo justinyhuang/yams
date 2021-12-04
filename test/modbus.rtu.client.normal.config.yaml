@@ -1,0 +1,21 @@
+---
+  common:
+      protocol_type: "RTU"
+      device_port: "COM11"
+      device_type: "Client"
+      device_id: 1
+      baudrate: 119200
+  client:
+      requests: [
+          {
+              server_id: 2,
+              request_files: [
+                  "test/requests/tcp/read.flowrate.request.yaml",
+                  "test/requests/tcp/write.flowrate.request.yaml",
+                  "test/requests/tcp/read.flowrate.request.yaml",
+                  "test/requests/tcp/read.resettable.totalizer.request.yaml",
+              ]
+          },
+      ]
+      register_data: ~
+  server: ~

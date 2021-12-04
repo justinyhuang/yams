@@ -3,11 +3,12 @@
       protocol_type: "TCP"
       device_port: ~
       device_type: "Client"
+      device_id: 1
       baudrate: ~
   client:
       requests: [
           {
-              server_id: ~,
+              server_id: 3,
               server_address: "127.0.0.1:5502",
               repeat_times: ~,
               request_files: [
