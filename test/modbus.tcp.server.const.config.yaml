@@ -4,6 +4,7 @@
       device_port: ~
       device_ip_address: "127.0.0.1:5502"
       device_type: "Server"
+      device_id: 3
       baudrate: ~
   client: ~
   server:

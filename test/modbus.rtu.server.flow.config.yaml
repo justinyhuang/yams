@@ -1,11 +1,10 @@
 ---
   common:
-      protocol_type: "TCP"
-      device_port: ~
-      device_ip_address: "127.0.0.1:5503"
+      protocol_type: "RTU"
+      device_port: COM10
       device_type: "Server"
       device_id: 2
-      baudrate: ~
+      baudrate: 119200
   client: ~
   server:
       register_data:

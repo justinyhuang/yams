@@ -1,7 +1,7 @@
 use std::fs;
-use colored::*;
 use tokio_modbus::prelude::*;
 use tokio::time::{sleep, Duration};
+use tokio_serial::SerialStream;
 
 use crate::{
     config::*,
@@ -10,12 +10,29 @@ use crate::{
 
 pub async fn start_modbus_client(config: ModbusDeviceConfig) -> Result<(), Box<dyn std::error::Error>>
 {
+    let _enabled = ansi_term::enable_ansi_support();
     print_configuration(&config);
     let client_requests = config.client.ok_or("Client config missing")?.requests;
     let mut counter: u16 = 0;
     for request in client_requests {
+        let server_id = request.server_id.ok_or("server id missing")?;
+        let server = Slave(server_id);
+        let mut ctx = match config.common.protocol_type {
+            ProtocolType::TCP => {
         let ip_addr = request.server_address
             .ok_or("Server IP address missing in config")?;
+                tcp::connect_slave(ip_addr, server).await?
+            },
+            ProtocolType::RTU => {
+                let device = config.common.device_port.as_ref()
+                    .ok_or("client port missing")?;
+                let baudrate = config.common.baudrate
+                    .ok_or("baudrate missing")?;
+                let builder = tokio_serial::new(device, baudrate);
+                let port = SerialStream::open(&builder).unwrap();
+                rtu::connect_slave(port, server).await?
+            },
+        };
         let mut rlist = Vec::<ModbusRequest>::new();
         for request_file in request.request_files {
             if let Ok(request_str) = fs::read_to_string(&request_file) {
@@ -29,7 +46,6 @@ pub async fn start_modbus_client(config: ModbusDeviceConfig) -> Result<(), Box<d
             }
         }
 
-        let mut ctx = tcp::connect(ip_addr).await?;
         let mut section_repeat_times = request.repeat_times.or_else(|| Some(1)).unwrap();
         #[allow(unused_parens)]
         let section_indefinite_loop = (section_repeat_times == REPEAT_TIME_INDEFINITE);
@@ -50,7 +66,7 @@ pub async fn start_modbus_client(config: ModbusDeviceConfig) -> Result<(), Box<d
                     }
                     sleep(Duration::from_millis(100 * delay_in_100ms)).await;
                     counter += 1;
-                    println!("{}", format!(">>{:04}>>", counter).blue());
+                    println!("{}", ansi_term::Colour::Blue.paint(format!(">>{:04}>>", counter)));
                     let response = match &r.function_code {
                         FunctionCode::ReadInputRegisters => {
                             vprintln(&format!("reading {} input registers starting at {}", count, start_addr),
@@ -86,23 +102,24 @@ pub async fn start_modbus_client(config: ModbusDeviceConfig) -> Result<(), Box<d
                         },
                         _ => todo!()
                     };
-                    println!("{}", r.description.normal());
+                    println!("{}", r.description);
                     match response {
                         ModbusRequestReturnType::ResultWithU16Vec(Ok(response)) => {
                             match r.data_type {
                                 DataType::Float32 =>
-                                    println!("{}", format!("===> {:?}", write_be_u16_into_f32(response.as_slice())).normal()),
+                                    println!("===> {:?}", write_be_u16_into_f32(response.as_slice())),
                                 DataType::Float64 =>
-                                    println!("{}", format!("===> {:?}", write_be_u16_into_f64(&response)).normal()),
+                                    println!("===> {:?}", write_be_u16_into_f64(&response)),
                                 _ => todo!()
                             }
                         },
                         ModbusRequestReturnType::ResultWithNothing(Ok(())) => {
-                            println!("{}", "===> done".normal());
+                            println!("===> done");
                         }
                         ModbusRequestReturnType::ResultWithNothing(Err(e)) |
                         ModbusRequestReturnType::ResultWithU16Vec(Err(e)) => {
-                            println!("{}{}", "failure".red(), format!(": {}", e).normal());
+                            vprint("failure ", ansi_term::Colour::Red, true);
+                            println!("{}", e);
                         }
                     }
                 }

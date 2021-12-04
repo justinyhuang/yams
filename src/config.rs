@@ -54,7 +54,7 @@ pub struct ModbusCommonConfig {
     /// the serial port when using Modbus RTU
     pub device_port: Option<String>,
     /// the id of the client/server
-    pub device_id: Option<u8>,
+    pub device_id: u8,
     /// the socket address when using Modbus TCP
     pub device_ip_address: Option<SocketAddr>,
     /// the baudrate when using Modbus RTU

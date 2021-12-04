@@ -1,7 +1,6 @@
 use futures::future;
 use tokio_modbus::prelude::*;
 use tokio_modbus::server::{self, Service};
-use colored::*;
 use std::sync::{Arc, Mutex};
 use crate::{
     config::*,
@@ -28,18 +27,18 @@ impl Service for MbServer {
         let mut db = self.db.lock().unwrap();
         let mut counter = self.counter.lock().unwrap();
         *counter += 1;
-        println!("{}", format!(">>{:04}>>", *counter).blue());
+        println!("{}", ansi_term::Colour::Blue.paint(format!(">>{:04}>>", counter)));
         vprintln(&format!("received request {:?}", req), self.verbose_mode);
         match req {
             Request::ReadInputRegisters(addr, cnt) =>
                 match (*db).request_u16_registers(addr, cnt, FunctionCode::ReadInputRegisters) {
                     Ok(registers) => {
-                        vprint("Ok", "green", self.verbose_mode);
+                        vprint("Ok", ansi_term::Colour::Green, self.verbose_mode);
                         vprintln(&format!(": input register values [{:#06X?}]", registers), self.verbose_mode);
                         future::ready(Ok(Response::ReadInputRegisters(registers)))
                     },
                     Err(e) => {
-                        vprint("Err", "red", self.verbose_mode);
+                        vprint("Err", ansi_term::Colour::Red, self.verbose_mode);
                         vprintln(&format!(": {:?} Exception", e), self.verbose_mode);
                         future::ready(Ok(Response::Custom(FunctionCode::ReadInputRegisters.get_exception_code(),
                                                           vec![e as u8])))
@@ -48,31 +47,32 @@ impl Service for MbServer {
             Request::ReadHoldingRegisters(addr, cnt) =>
                 match (*db).request_u16_registers(addr, cnt, FunctionCode::ReadHoldingRegisters) {
                     Ok(registers) => {
-                        vprint("Ok", "green", self.verbose_mode);
+                        vprint("Ok", ansi_term::Colour::Green, self.verbose_mode);
                         vprintln(&format!(": holding register values [{:#06X?}]", registers), self.verbose_mode);
                         future::ready(Ok(Response::ReadHoldingRegisters(registers)))
                     },
                     Err(e) => {
-                        vprint("Err", "red", self.verbose_mode);
+                        vprint("Err", ansi_term::Colour::Red, self.verbose_mode);
                         vprintln(&format!(": {:?} Exception", e), self.verbose_mode);
                         future::ready(Ok(Response::Custom(FunctionCode::ReadHoldingRegisters.get_exception_code(),
                                                           vec![e as u8])))
                     },
             },
-            Request::WriteMultipleRegisters(addr, values) =>
+            Request::WriteMultipleRegisters(addr, values) => {
                 match (*db).update_u16_registers(addr, values, FunctionCode::WriteMultipleRegisters) {
                     Ok(reg_num) => {
-                        vprint("Ok", "green", self.verbose_mode);
+                        vprint("Ok", ansi_term::Colour::Green, self.verbose_mode);
                         vprintln(&format!(": {} registers updated", reg_num), self.verbose_mode);
                         future::ready(Ok(Response::WriteMultipleRegisters(addr, reg_num as u16)))
                     },
                     Err(e) => {
-                        vprint("Err", "red", self.verbose_mode);
+                        vprint("Err", ansi_term::Colour::Red, self.verbose_mode);
                         vprintln(&format!(": {:?} Exception", e), self.verbose_mode);
                         future::ready(Ok(Response::Custom(FunctionCode::WriteMultipleRegisters.get_exception_code(),
                                                           vec![e as u8])))
                     },
                 }
+            }
             _ => unimplemented!(),
         }
     }
@@ -80,21 +80,44 @@ impl Service for MbServer {
 
 pub async fn start_modbus_server(config: ModbusDeviceConfig) -> Result<(), Box<dyn std::error::Error>>
 {
+    let _enabled = ansi_term::enable_ansi_support();
     print_configuration(&config);
-    let ip_addr = config
-                  .common
-                  .device_ip_address
-                  .ok_or("IP address doesn't exist")?;
     let register_data = config
                         .server
-                        .ok_or("Server config doesn't exist")?
+                        .ok_or("Server config missing")?
                         .register_data;
-    let server = server::tcp::Server::new(ip_addr);
-    server.serve(move || Ok(MbServer{
+    match config.common.protocol_type {
+        ProtocolType::TCP => {
+            let ip_addr = config
+                .common
+                .device_ip_address
+                .ok_or("IP address missing")?;
+            let server = server::tcp::Server::new(ip_addr);
+            server.serve(move || Ok(MbServer{
                                      db: Arc::new(Mutex::new(register_data.clone())),
                                      verbose_mode: config.verbose_mode,
                                      counter: Arc::new(Mutex::new(0)),
                                     })).await.unwrap();
+        },
+        ProtocolType::RTU => {
+            let port = config
+                .common
+                .device_port
+                .ok_or("device port missing")?;
+            let baudrate = config
+                .common
+                .baudrate
+                .ok_or("baudrate missing")?;
+            let builder = tokio_serial::new(port, baudrate);
+            let server_serial = tokio_serial::SerialStream::open(&builder).unwrap();
+            let server = server::rtu::Server::new(server_serial);
+            server.serve_forever(move || Ok(MbServer{
+                                     db: Arc::new(Mutex::new(register_data.clone())),
+                                     verbose_mode: config.verbose_mode,
+                                     counter: Arc::new(Mutex::new(0)),
+                                    })).await;
+        },
+    };
     Ok(())
 }
 

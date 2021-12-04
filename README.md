@@ -38,7 +38,7 @@ See [YAML based Configurations](yaml.based.configurations.md)
 
 - [x] implement Modbus TCP support
 - [x] implement YAML configuration/request support
-- [ ] implement Modbus RTU support
+- [x] implement Modbus RTU support
 - [x] implement support for repeated request(s)
 - [x] implement support for delay before request(s)
 - [x] implement error handling

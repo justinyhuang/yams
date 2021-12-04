@@ -24,8 +24,7 @@
       Specifies the type of the simulated Modbus device: either "Server" or "Client"
 
       device_id: >
-      Specifies the Modbus ID of the device, used for Modbus RTU.
-      This is an optional configurable item, and when not used just leave it as "~", or do not specify this item.
+      Specifies the Modbus ID of the device.
 
       baudrate: >
       Specifies the baudrate when used for Modbus RTU.
