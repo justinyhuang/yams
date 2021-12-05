@@ -10,7 +10,9 @@ use crate::{
 
 pub async fn start_modbus_client(config: ModbusDeviceConfig) -> Result<(), Box<dyn std::error::Error>>
 {
+    #[cfg(target_os="windows")]
     let _enabled = ansi_term::enable_ansi_support();
+
     print_configuration(&config);
     let client_requests = config.client.ok_or("Client config missing")?.requests;
     let mut counter: u16 = 0;

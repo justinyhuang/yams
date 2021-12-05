@@ -80,7 +80,9 @@ impl Service for MbServer {
 
 pub async fn start_modbus_server(config: ModbusDeviceConfig) -> Result<(), Box<dyn std::error::Error>>
 {
+    #[cfg(target_os="windows")]
     let _enabled = ansi_term::enable_ansi_support();
+
     print_configuration(&config);
     let register_data = config
                         .server
