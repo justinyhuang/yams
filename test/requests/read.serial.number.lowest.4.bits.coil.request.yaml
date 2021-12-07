@@ -1,0 +1,5 @@
+---
+    description: "read lowest 4 bits of serial number"
+    function_code: "ReadCoils"
+    access_start_address: 10001
+    access_quantity: 4

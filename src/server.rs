@@ -9,7 +9,8 @@ use crate::{
     util::*};
 
 struct MbServer {
-    db: Arc<Mutex<ModbusRegisterDatabase>>,
+    rdb: Arc<Mutex<ModbusRegisterDatabase>>,
+    cdb: Arc<Mutex<ModbusCoilDatabase>>,
     verbose_mode: bool,
     counter: Arc<Mutex<u16>>,
 }
@@ -24,17 +25,18 @@ impl Service for MbServer {
         /* since the tokio-mobus crate doesn't support server sending exception response (yet),
          * the custom response type is used as a workaround to send exception response below.
          */
-        let mut db = self.db.lock().unwrap();
+        let mut rdb = self.rdb.lock().unwrap();
+        let mut cdb = self.cdb.lock().unwrap();
         let mut counter = self.counter.lock().unwrap();
         *counter += 1;
         println!("{}", ansi_term::Colour::Blue.paint(format!(">>{:04}>>", counter)));
         vprintln(&format!("received request {:?}", req), self.verbose_mode);
         match req {
             Request::ReadInputRegisters(addr, cnt) =>
-                match (*db).request_u16_registers(addr, cnt, FunctionCode::ReadInputRegisters) {
+                match (*rdb).request_u16_registers(addr, cnt, FunctionCode::ReadInputRegisters) {
                     Ok(registers) => {
                         vprint("Ok", ansi_term::Colour::Green, self.verbose_mode);
-                        vprintln(&format!(": input register values [{:#06X?}]", registers), self.verbose_mode);
+                        vprintln(&format!(": input register values {:#06X?}", registers), self.verbose_mode);
                         future::ready(Ok(Response::ReadInputRegisters(registers)))
                     },
                     Err(e) => {
@@ -45,10 +47,10 @@ impl Service for MbServer {
                     },
             },
             Request::ReadHoldingRegisters(addr, cnt) =>
-                match (*db).request_u16_registers(addr, cnt, FunctionCode::ReadHoldingRegisters) {
+                match (*rdb).request_u16_registers(addr, cnt, FunctionCode::ReadHoldingRegisters) {
                     Ok(registers) => {
                         vprint("Ok", ansi_term::Colour::Green, self.verbose_mode);
-                        vprintln(&format!(": holding register values [{:#06X?}]", registers), self.verbose_mode);
+                        vprintln(&format!(": holding register values {:#06X?}", registers), self.verbose_mode);
                         future::ready(Ok(Response::ReadHoldingRegisters(registers)))
                     },
                     Err(e) => {
@@ -58,8 +60,8 @@ impl Service for MbServer {
                                                           vec![e as u8])))
                     },
             },
-            Request::WriteMultipleRegisters(addr, values) => {
-                match (*db).update_u16_registers(addr, values, FunctionCode::WriteMultipleRegisters) {
+            Request::WriteMultipleRegisters(addr, values) =>
+                match (*rdb).update_u16_registers(addr, values, FunctionCode::WriteMultipleRegisters) {
                     Ok(reg_num) => {
                         vprint("Ok", ansi_term::Colour::Green, self.verbose_mode);
                         vprintln(&format!(": {} registers updated", reg_num), self.verbose_mode);
@@ -71,8 +73,63 @@ impl Service for MbServer {
                         future::ready(Ok(Response::Custom(FunctionCode::WriteMultipleRegisters.get_exception_code(),
                                                           vec![e as u8])))
                     },
-                }
-            }
+                },
+            Request::WriteMultipleCoils(addr, values) =>
+                match (*cdb).update_coils(addr, values, FunctionCode::WriteMultipleCoils, &mut rdb) {
+                    Ok(coil_num) => {
+                        vprint("Ok", ansi_term::Colour::Green, self.verbose_mode);
+                        vprintln(&format!(": {} coils updated", coil_num), self.verbose_mode);
+                        future::ready(Ok(Response::WriteMultipleCoils(addr, coil_num as u16)))
+                    },
+                    Err(e) => {
+                        vprint("Err", ansi_term::Colour::Red, self.verbose_mode);
+                        vprintln(&format!(": {:?} Exception", e), self.verbose_mode);
+                        future::ready(Ok(Response::Custom(FunctionCode::WriteMultipleCoils.get_exception_code(),
+                                                          vec![e as u8])))
+                    },
+                },
+            Request::ReadCoils(addr, cnt) =>
+                match (*cdb).read_coils(addr, cnt, FunctionCode::ReadCoils, &rdb) {
+                    Ok(coils) => {
+                        vprint("Ok", ansi_term::Colour::Green, self.verbose_mode);
+                        vprintln(&format!(": coil values {:#06X?}", coils), self.verbose_mode);
+                        future::ready(Ok(Response::ReadCoils(coils)))
+                    },
+                    Err(e) => {
+                        vprint("Err", ansi_term::Colour::Red, self.verbose_mode);
+                        vprintln(&format!(": {:?} Exception", e), self.verbose_mode);
+                        future::ready(Ok(Response::Custom(FunctionCode::ReadCoils.get_exception_code(),
+                                                          vec![e as u8])))
+                    },
+            },
+            Request::ReadDiscreteInputs(addr, cnt) =>
+                match (*cdb).read_coils(addr, cnt, FunctionCode::ReadDiscreteInputs, &rdb) {
+                    Ok(coils) => {
+                        vprint("Ok", ansi_term::Colour::Green, self.verbose_mode);
+                        vprintln(&format!(": coil values {:#06X?}", coils), self.verbose_mode);
+                        future::ready(Ok(Response::ReadDiscreteInputs(coils)))
+                    },
+                    Err(e) => {
+                        vprint("Err", ansi_term::Colour::Red, self.verbose_mode);
+                        vprintln(&format!(": {:?} Exception", e), self.verbose_mode);
+                        future::ready(Ok(Response::Custom(FunctionCode::ReadDiscreteInputs.get_exception_code(),
+                                                          vec![e as u8])))
+                    },
+            },
+            Request::WriteSingleCoil(addr, value) =>
+                match (*cdb).update_coils(addr, vec![value], FunctionCode::WriteSingleCoil, &mut rdb) {
+                    Ok(_) => {
+                        vprint("Ok", ansi_term::Colour::Green, self.verbose_mode);
+                        vprintln(&format!(": coil is set to {}", value), self.verbose_mode);
+                        future::ready(Ok(Response::WriteSingleCoil(addr, value)))
+                    },
+                    Err(e) => {
+                        vprint("Err", ansi_term::Colour::Red, self.verbose_mode);
+                        vprintln(&format!(": {:?} Exception", e), self.verbose_mode);
+                        future::ready(Ok(Response::Custom(FunctionCode::WriteSingleCoil.get_exception_code(),
+                                                          vec![e as u8])))
+                    },
+                },
             _ => unimplemented!(),
         }
     }
@@ -84,10 +141,10 @@ pub async fn start_modbus_server(config: ModbusDeviceConfig) -> Result<(), Box<d
     let _enabled = ansi_term::enable_ansi_support();
 
     print_configuration(&config);
-    let register_data = config
-                        .server
-                        .ok_or("Server config missing")?
-                        .register_data;
+    let (register_data, coil_data) = config
+                                    .server
+                                    .ok_or("Server config missing")?
+                                    .get_db();
     match config.common.protocol_type {
         ProtocolType::TCP => {
             let ip_addr = config
@@ -96,7 +153,8 @@ pub async fn start_modbus_server(config: ModbusDeviceConfig) -> Result<(), Box<d
                 .ok_or("IP address missing")?;
             let server = server::tcp::Server::new(ip_addr);
             server.serve(move || Ok(MbServer{
-                                     db: Arc::new(Mutex::new(register_data.clone())),
+                                     rdb: Arc::new(Mutex::new(register_data.clone())),
+                                     cdb: Arc::new(Mutex::new(coil_data.clone())),
                                      verbose_mode: config.verbose_mode,
                                      counter: Arc::new(Mutex::new(0)),
                                     })).await.unwrap();
@@ -114,7 +172,8 @@ pub async fn start_modbus_server(config: ModbusDeviceConfig) -> Result<(), Box<d
             let server_serial = tokio_serial::SerialStream::open(&builder).unwrap();
             let server = server::rtu::Server::new(server_serial);
             server.serve_forever(move || Ok(MbServer{
-                                     db: Arc::new(Mutex::new(register_data.clone())),
+                                     rdb: Arc::new(Mutex::new(register_data.clone())),
+                                     cdb: Arc::new(Mutex::new(coil_data.clone())),
                                      verbose_mode: config.verbose_mode,
                                      counter: Arc::new(Mutex::new(0)),
                                     })).await;

@@ -1,6 +1,6 @@
 ---
     description: "read flowrate"
-    function_code: "ReadInputRegisters"
+    function_code: "ReadHoldingRegisters"
     access_start_address: 40001
     access_quantity: 2
     new_values: ~

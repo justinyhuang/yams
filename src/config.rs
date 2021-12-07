@@ -42,7 +42,7 @@ pub struct ModbusRequest {
     /// delay before request, in 100 ms
     pub delay: Option<u64>,
     /// type of the data in the request
-    pub data_type: DataType,
+    pub data_type: Option<DataType>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -85,8 +85,16 @@ pub struct ModbusClientConfig {
 
 #[derive(Debug, Deserialize)]
 pub struct ModbusServerConfig {
-    /// the register database
+    /// the register and coil database
     pub register_data: ModbusRegisterDatabase,
+    pub coil_data: ModbusCoilDatabase,
+}
+
+impl ModbusServerConfig {
+    pub fn get_db(self) -> (ModbusRegisterDatabase, ModbusCoilDatabase)
+    {
+        (self.register_data, self.coil_data)
+    }
 }
 
 #[derive(Debug, Deserialize)]

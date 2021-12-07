@@ -12,7 +12,7 @@
               server_address: "127.0.0.1:5502",
               repeat_times: ~,
               request_files: [
-                  "test/requests/tcp/read.pi.indefinitely.request.yaml",
+                  "test/requests/read.pi.indefinitely.request.yaml",
               ]
           },
       ]

@@ -26,9 +26,9 @@ pub enum DataType {
 
 #[derive(ArgEnum, Clone, Debug, Copy, PartialEq, Deserialize)]
 pub enum DataModelType {
-    DiscretesInput,
+    DiscreteInputs,
     Coils,
-    DiscretesInputOrCoils,
+    DiscreteInputsOrCoils,
     InputRegister,
     HoldingRegister,
     HoldingOrInputRegister,
@@ -44,6 +44,7 @@ pub enum DataAccessType {
 
 pub enum ModbusRequestReturnType {
     ResultWithU16Vec(Result<Vec<u16>, io::Error>),
+    ResultWithBoolVec(Result<Vec<bool>, io::Error>),
     ResultWithNothing(Result<(), io::Error>),
 }
 
