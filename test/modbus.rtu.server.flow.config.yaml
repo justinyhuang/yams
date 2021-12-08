@@ -1,7 +1,7 @@
 ---
   common:
       protocol_type: "RTU"
-      device_port: COM10
+      device_port: COM11
       device_type: "Server"
       device_id: 2
       baudrate: 119200
@@ -11,16 +11,75 @@
           db: {
               40001: {
                  data_description: "Flowrate",
-                 data_model_type: "HoldingOrInputRegister",
+                 data_model_type: HoldingOrInputRegister,
                  data_access_type: ~,
-                 data_type: "Float32",
+                 data_type: Float32,
                  data_value: 42.03
                  },
               40003: {
                  data_description: "Resettable Totalizer",
-                 data_model_type: "HoldingOrInputRegister",
-                 data_access_type: "ReadOnly",
-                 data_type: "Float64",
+                 data_model_type: HoldingOrInputRegister,
+                 data_access_type: ReadOnly,
+                 data_type: Float64,
                  data_value: 424242.242424
+                 },
+              40004: {
+                  data_description: "Serial Number",
+                  data_model_type: InputRegister,
+                  data_access_type: ReadWrite,
+                  data_type: Uint32,
+                  data_value: 0x12345678
+              }
+          }
+      coil_data:
+          db: {
+              10001: {
+                 data_description: "Serial Number bit0",
+                 data_model_type: "Coils",
+                 data_access_type: ~,
+                 data_value: {
+                     type: RegisterBit,
+                     register: 40004,
+                     bit: 0
                  }
+              },
+              10002: {
+                 data_description: "Serial Number bit1",
+                 data_model_type: "Coils",
+                 data_access_type: ~,
+                 data_value: {
+                     type: RegisterBit,
+                     register: 40004,
+                     bit: 1
+                 }
+              },
+              10003: {
+                 data_description: "Serial Number bit2",
+                 data_model_type: "Coils",
+                 data_access_type: ~,
+                 data_value: {
+                     type: RegisterBit,
+                     register: 40004,
+                     bit: 2
+                 }
+              },
+              10004: {
+                 data_description: "Serial Number bit3",
+                 data_model_type: "Coils",
+                 data_access_type: ~,
+                 data_value: {
+                     type: RegisterBit,
+                     register: 40004,
+                     bit: 3
+                 }
+              },
+              10005: {
+                 data_description: "LED Power State",
+                 data_model_type: Coils,
+                 data_access_type: ~,
+                 data_value: {
+                     type: Independent,
+                     value: true,
+                 }
+              }
           }

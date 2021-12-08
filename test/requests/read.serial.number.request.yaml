@@ -1,0 +1,9 @@
+---
+    description: "read serial number"
+    function_code: ReadInputRegisters
+    access_start_address: 40004
+    access_quantity: 2
+    new_values: ~
+    repeat_times: 1
+    delay: ~
+    data_type: Uint32

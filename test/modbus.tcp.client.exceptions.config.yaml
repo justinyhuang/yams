@@ -12,9 +12,9 @@
               server_address: "127.0.0.1:5502",
               repeat_times: ~,
               request_files: [
-                  "test/requests/tcp/read.pi.request.illegal.function.yaml",
-                  "test/requests/tcp/read.pi.request.illegal.data.yaml",
-                  "test/requests/tcp/read.golden.ratio.request.illegal.address.yaml",
+                  "test/requests/read.pi.request.illegal.function.yaml",
+                  "test/requests/read.pi.request.illegal.data.yaml",
+                  "test/requests/read.golden.ratio.request.illegal.address.yaml",
               ]
           },
       ]

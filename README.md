@@ -46,17 +46,17 @@ See [YAML based Configurations](yaml.based.configurations.md)
 - [x] implement verbose mode to print out more detail/data
 - [x] implement request/response counts printout
 - implement function code support below:
-  - [ ] Read Coils
-  - [ ] Read Discrete Inputs
+  - [x] Read Coils
+  - [x] Read Discrete Inputs
   - [x] Read Holding Registers
   - [x] Read Input Registers
-  - [ ] Write Single Coil
+  - [x] Write Single Coil
   - [ ] Write Single Register
   - [ ] Read Exception Status
   - [ ] Diagnostics
   - [ ] Get Comm Event Counter
   - [ ] Get Comm Event Log
-  - [ ] Write Multiple Coils
+  - [x] Write Multiple Coils
   - [x] Write Multiple Registers
   - [ ] Report Server ID
   - [ ] Read File Record

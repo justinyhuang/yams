@@ -83,9 +83,10 @@ pub async fn start_modbus_client(config: ModbusDeviceConfig) -> Result<(), Box<d
                                 ctx.read_holding_registers(start_addr, count).await)
                         },
                         FunctionCode::WriteMultipleRegisters => {
-                            let new_values = r.new_values.as_ref().expect("no new value for write");
+                            let new_values = r.new_values.as_ref().expect("missing value for write");
+                            let data_type = r.data_type.as_ref().expect("missing data type for write");
                             let mut data = Vec::<u16>::new();
-                            match r.data_type {
+                            match data_type {
                                 DataType::Float32 => {
                                     for v in new_values {
                                         if let Ok(f) = v.parse::<f32>() {
@@ -102,24 +103,70 @@ pub async fn start_modbus_client(config: ModbusDeviceConfig) -> Result<(), Box<d
                             ModbusRequestReturnType::ResultWithNothing(
                                 ctx.write_multiple_registers(start_addr, &data).await)
                         },
+                        FunctionCode::WriteMultipleCoils => {
+                            let new_values = r.new_values.as_ref().expect("missing value for write");
+                            let mut data = Vec::<bool>::new();
+                            for v in new_values {
+                                if let Ok(f) = v.parse::<bool>() {
+                                    data.push(f);
+                                }
+                            }
+                            vprintln(&format!("writing registers starting at {} with values:", start_addr),
+                                     config.verbose_mode);
+                            vprintln(&format!("{:?}", &data),
+                                     config.verbose_mode);
+                            ModbusRequestReturnType::ResultWithNothing(
+                                ctx.write_multiple_coils(start_addr, &data).await)
+                        },
+                        FunctionCode::ReadCoils => {
+                            vprintln(&format!("reading {} coils starting at {}", count, start_addr),
+                                     config.verbose_mode);
+                            ModbusRequestReturnType::ResultWithBoolVec(
+                                ctx.read_coils(start_addr, count).await)
+                        },
+                        FunctionCode::ReadDiscreteInputs => {
+                            vprintln(&format!("reading {} coils starting at {}", count, start_addr),
+                                     config.verbose_mode);
+                            ModbusRequestReturnType::ResultWithBoolVec(
+                                ctx.read_discrete_inputs(start_addr, count).await)
+                        },
+                        FunctionCode::WriteSingleCoil => {
+                            let new_values = r.new_values.as_ref().expect("missing value for write");
+                            let data = new_values[0].parse::<bool>().expect("incorrect value for bool");
+                            vprintln(&format!("writing coil at {} with value:", start_addr),
+                                     config.verbose_mode);
+                            vprintln(&format!("{:?}", &data),
+                                     config.verbose_mode);
+                            ModbusRequestReturnType::ResultWithNothing(
+                                ctx.write_single_coil(start_addr, data).await)
+                        },
                         _ => todo!()
                     };
                     println!("{}", r.description);
                     match response {
                         ModbusRequestReturnType::ResultWithU16Vec(Ok(response)) => {
-                            match r.data_type {
+                            let data_type = r.data_type.as_ref().expect("missing data type for write");
+                            match data_type {
                                 DataType::Float32 =>
                                     println!("===> {:?}", write_be_u16_into_f32(response.as_slice())),
                                 DataType::Float64 =>
                                     println!("===> {:?}", write_be_u16_into_f64(&response)),
+                                DataType::Uint32 =>
+                                {
+                                    let data = response[0] as u32 | (response[1] as u32) << 16;
+                                    println!("===> {:?} ({:#010X})", data, data);
+                                },
                                 _ => todo!()
                             }
                         },
+                        ModbusRequestReturnType::ResultWithBoolVec(Ok(response)) =>
+                            println!("{:?}", response),
                         ModbusRequestReturnType::ResultWithNothing(Ok(())) => {
                             println!("===> done");
                         }
                         ModbusRequestReturnType::ResultWithNothing(Err(e)) |
-                        ModbusRequestReturnType::ResultWithU16Vec(Err(e)) => {
+                        ModbusRequestReturnType::ResultWithU16Vec(Err(e))  |
+                        ModbusRequestReturnType::ResultWithBoolVec(Err(e)) => {
                             vprint("failure ", ansi_term::Colour::Red, true);
                             println!("{}", e);
                         }

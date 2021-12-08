@@ -25,3 +25,5 @@
                  data_value: 1.618034,
                  }
           }
+      coil_data:
+          db: {}

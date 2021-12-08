@@ -1,0 +1,8 @@
+---
+    description: "read led power state coil"
+    function_code: "ReadCoils"
+    access_start_address: 10005
+    access_quantity: 1
+    new_values:
+    repeat_times: ~
+    delay: ~

@@ -1,0 +1,8 @@
+---
+    description: "write led power state"
+    function_code: "WriteSingleCoil"
+    access_start_address: 10005
+    access_quantity: 1
+    new_values: [false]
+    repeat_times: ~
+    delay: ~
