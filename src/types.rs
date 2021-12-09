@@ -61,12 +61,11 @@ pub enum FunctionCode {
     GetCommeventCounter = 0x0B,
     GetcommEventLog = 0x0C,
     WriteMultipleCoils = 0x0F,
-    WriteMultipleRegisters = 0x10
+    WriteMultipleRegisters = 0x10,
 }
 
 impl FunctionCode {
-    pub fn get_exception_code(&self) -> u8
-    {
+    pub fn get_exception_code(&self) -> u8 {
         *self as u8 + 0x80
     }
 }
@@ -80,4 +79,3 @@ pub enum ModbusExceptionCode {
     IllegalDataAddress = 0x02,
     IllegalDataValue = 0x03,
 }
-

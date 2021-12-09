@@ -1,13 +1,8 @@
+use crate::{data::*, types::*};
+use anyhow::{self, Context};
 use clap::Parser;
 use serde::Deserialize;
-use anyhow::{self, Context};
-use std::{
-    net::SocketAddr,
-    path::PathBuf,
-    fs};
-use crate::{
-    data::*,
-    types::*};
+use std::{fs, net::SocketAddr, path::PathBuf};
 
 #[derive(Parser, Debug)]
 #[clap(version = "0.1", author = "Justin Huang <justin.y.huang@live.com>")]
@@ -91,8 +86,7 @@ pub struct ModbusServerConfig {
 }
 
 impl ModbusServerConfig {
-    pub fn get_db(self) -> (ModbusRegisterDatabase, ModbusCoilDatabase)
-    {
+    pub fn get_db(self) -> (ModbusRegisterDatabase, ModbusCoilDatabase) {
         (self.register_data, self.coil_data)
     }
 }
@@ -110,21 +104,17 @@ pub struct ModbusDeviceConfig {
     pub verbose_mode: bool,
 }
 
-fn parse_config_str(config_str: &str) -> anyhow::Result<ModbusDeviceConfig>
-{
-    serde_yaml::from_str(&config_str)
-        .with_context(|| format!("failed to parse the config string"))
+fn parse_config_str(config_str: &str) -> anyhow::Result<ModbusDeviceConfig> {
+    serde_yaml::from_str(&config_str).with_context(|| format!("failed to parse the config string"))
 }
 
-pub fn configure(opts: &Opts) -> anyhow::Result<ModbusDeviceConfig>
-{
+pub fn configure(opts: &Opts) -> anyhow::Result<ModbusDeviceConfig> {
     if let Some(config_file) = &opts.config_file {
         match fs::read_to_string(config_file) {
             Ok(config_str) => parse_config_str(&config_str),
             Err(e) => Err(e.into()),
         }
-    }
-    else {
+    } else {
         todo!()
     }
 }

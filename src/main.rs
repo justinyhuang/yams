@@ -1,18 +1,13 @@
 /* Yet Another Modbus Simulator */
-mod config;
-mod types;
-mod data;
-mod util;
 mod client;
+mod config;
+mod data;
 mod server;
+mod types;
+mod util;
 use clap::Parser;
 
-use crate::{
-    types::*,
-    config::*,
-    client::*,
-    server::*,
-};
+use crate::{client::*, config::*, server::*, types::*};
 
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn std::error::Error>> {

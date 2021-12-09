@@ -1,11 +1,7 @@
-use serde::Deserialize;
+use crate::{types::*, util::*};
 use anyhow;
-use std::{
-    collections::HashMap,
-    fmt::Write as FmtWrite};
-use crate::{
-    util::*,
-    types::*};
+use serde::Deserialize;
+use std::{collections::HashMap, fmt::Write as FmtWrite};
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct ModbusRegisterData {
@@ -22,117 +18,139 @@ pub struct ModbusRegisterData {
 }
 
 impl ModbusRegisterData {
-    pub fn is_function_code_supported(&self, function_code: FunctionCode) -> bool
-    {
-        let access_type = self.data_access_type.or_else(|| Some(DataAccessType::ReadWrite)).unwrap();
+    pub fn is_function_code_supported(&self, function_code: FunctionCode) -> bool {
+        let access_type = self
+            .data_access_type
+            .or_else(|| Some(DataAccessType::ReadWrite))
+            .unwrap();
         match (access_type, self.data_model_type) {
-            (DataAccessType::ReadOnly, DataModelType::DiscreteInputs) =>
+            (DataAccessType::ReadOnly, DataModelType::DiscreteInputs) => {
                 if function_code == FunctionCode::ReadDiscreteInputs {
                     true
                 } else {
                     false
-                },
-            (DataAccessType::ReadOnly, DataModelType::Coils) =>
+                }
+            }
+            (DataAccessType::ReadOnly, DataModelType::Coils) => {
                 if function_code == FunctionCode::ReadCoils {
                     true
                 } else {
                     false
-                },
-            (DataAccessType::ReadOnly, DataModelType::DiscreteInputsOrCoils) =>
-                if function_code == FunctionCode::ReadCoils ||
-                   function_code == FunctionCode::ReadDiscreteInputs{
+                }
+            }
+            (DataAccessType::ReadOnly, DataModelType::DiscreteInputsOrCoils) => {
+                if function_code == FunctionCode::ReadCoils
+                    || function_code == FunctionCode::ReadDiscreteInputs
+                {
                     true
                 } else {
                     false
-                },
-            (DataAccessType::ReadOnly, DataModelType::InputRegister) =>
+                }
+            }
+            (DataAccessType::ReadOnly, DataModelType::InputRegister) => {
                 if function_code == FunctionCode::ReadInputRegisters {
                     true
                 } else {
                     false
-                },
-            (DataAccessType::ReadOnly, DataModelType::HoldingRegister) =>
+                }
+            }
+            (DataAccessType::ReadOnly, DataModelType::HoldingRegister) => {
                 if function_code == FunctionCode::ReadHoldingRegisters {
                     true
                 } else {
                     false
-                },
-            (DataAccessType::ReadOnly, DataModelType::HoldingOrInputRegister) =>
-                if function_code == FunctionCode::ReadHoldingRegisters ||
-                   function_code == FunctionCode::ReadInputRegisters {
+                }
+            }
+            (DataAccessType::ReadOnly, DataModelType::HoldingOrInputRegister) => {
+                if function_code == FunctionCode::ReadHoldingRegisters
+                    || function_code == FunctionCode::ReadInputRegisters
+                {
                     true
                 } else {
                     false
-                },
-            (DataAccessType::ReadOnly, DataModelType::AllType) =>
-                if function_code == FunctionCode::ReadHoldingRegisters ||
-                   function_code == FunctionCode::ReadInputRegisters ||
-                   function_code == FunctionCode::ReadDiscreteInputs ||
-                   function_code == FunctionCode::ReadCoils {
+                }
+            }
+            (DataAccessType::ReadOnly, DataModelType::AllType) => {
+                if function_code == FunctionCode::ReadHoldingRegisters
+                    || function_code == FunctionCode::ReadInputRegisters
+                    || function_code == FunctionCode::ReadDiscreteInputs
+                    || function_code == FunctionCode::ReadCoils
+                {
                     true
                 } else {
                     false
-                },
-            (DataAccessType::WriteOnly, DataModelType::DiscreteInputs) |
-            (DataAccessType::WriteOnly, DataModelType::Coils) |
-            (DataAccessType::WriteOnly, DataModelType::DiscreteInputsOrCoils) =>
-                if function_code == FunctionCode::WriteMultipleCoils ||
-                   function_code == FunctionCode::WriteSingleCoil {
+                }
+            }
+            (DataAccessType::WriteOnly, DataModelType::DiscreteInputs)
+            | (DataAccessType::WriteOnly, DataModelType::Coils)
+            | (DataAccessType::WriteOnly, DataModelType::DiscreteInputsOrCoils) => {
+                if function_code == FunctionCode::WriteMultipleCoils
+                    || function_code == FunctionCode::WriteSingleCoil
+                {
                     true
                 } else {
                     false
-                },
-            (DataAccessType::WriteOnly, DataModelType::InputRegister) |
-            (DataAccessType::WriteOnly, DataModelType::HoldingRegister) |
-            (DataAccessType::WriteOnly, DataModelType::HoldingOrInputRegister) =>
-                if function_code == FunctionCode::WriteMultipleRegisters ||
-                   function_code == FunctionCode::WriteSingleRegister {
+                }
+            }
+            (DataAccessType::WriteOnly, DataModelType::InputRegister)
+            | (DataAccessType::WriteOnly, DataModelType::HoldingRegister)
+            | (DataAccessType::WriteOnly, DataModelType::HoldingOrInputRegister) => {
+                if function_code == FunctionCode::WriteMultipleRegisters
+                    || function_code == FunctionCode::WriteSingleRegister
+                {
                     true
                 } else {
                     false
-                },
-            (DataAccessType::WriteOnly, DataModelType::AllType) =>
-                if function_code == FunctionCode::WriteMultipleRegisters ||
-                   function_code == FunctionCode::WriteSingleRegister ||
-                   function_code == FunctionCode::WriteMultipleCoils ||
-                   function_code == FunctionCode::WriteSingleCoil {
+                }
+            }
+            (DataAccessType::WriteOnly, DataModelType::AllType) => {
+                if function_code == FunctionCode::WriteMultipleRegisters
+                    || function_code == FunctionCode::WriteSingleRegister
+                    || function_code == FunctionCode::WriteMultipleCoils
+                    || function_code == FunctionCode::WriteSingleCoil
+                {
                     true
                 } else {
                     false
-                },
-            (DataAccessType::ReadWrite, DataModelType::InputRegister) =>
-                if function_code == FunctionCode::WriteMultipleRegisters ||
-                   function_code == FunctionCode::WriteSingleRegister ||
-                   function_code == FunctionCode::ReadInputRegisters {
+                }
+            }
+            (DataAccessType::ReadWrite, DataModelType::InputRegister) => {
+                if function_code == FunctionCode::WriteMultipleRegisters
+                    || function_code == FunctionCode::WriteSingleRegister
+                    || function_code == FunctionCode::ReadInputRegisters
+                {
                     true
                 } else {
                     false
-                },
-            (DataAccessType::ReadWrite, DataModelType::HoldingRegister) =>
-                if function_code == FunctionCode::WriteMultipleRegisters ||
-                   function_code == FunctionCode::WriteSingleRegister ||
-                   function_code == FunctionCode::ReadHoldingRegisters {
+                }
+            }
+            (DataAccessType::ReadWrite, DataModelType::HoldingRegister) => {
+                if function_code == FunctionCode::WriteMultipleRegisters
+                    || function_code == FunctionCode::WriteSingleRegister
+                    || function_code == FunctionCode::ReadHoldingRegisters
+                {
                     true
                 } else {
                     false
-                },
-            (DataAccessType::ReadWrite, DataModelType::HoldingOrInputRegister) =>
-                if function_code == FunctionCode::WriteMultipleRegisters ||
-                   function_code == FunctionCode::WriteSingleRegister ||
-                   function_code == FunctionCode::ReadInputRegisters   ||
-                   function_code == FunctionCode::ReadHoldingRegisters {
+                }
+            }
+            (DataAccessType::ReadWrite, DataModelType::HoldingOrInputRegister) => {
+                if function_code == FunctionCode::WriteMultipleRegisters
+                    || function_code == FunctionCode::WriteSingleRegister
+                    || function_code == FunctionCode::ReadInputRegisters
+                    || function_code == FunctionCode::ReadHoldingRegisters
+                {
                     true
                 } else {
                     false
-                },
-            (DataAccessType::ReadWrite, DataModelType::AllType) =>
-                true,
+                }
+            }
+            (DataAccessType::ReadWrite, DataModelType::AllType) => true,
             _ => false,
         }
     }
 
-    pub fn write_to_be_u16(&self, registers: &mut Vec<u16>) -> usize
-    {
+    pub fn write_to_be_u16(&self, registers: &mut Vec<u16>) -> usize {
         match &self.data_type {
             DataType::Float32 => {
                 if let Ok(value) = self.data_value.parse::<f32>() {
@@ -155,13 +173,15 @@ impl ModbusRegisterData {
                     return 2;
                 }
             }
-            _ => todo!()
+            _ => todo!(),
         }
         return 0;
     }
 
-    pub fn read_from_be_u16(&mut self, it: &mut std::iter::Peekable<std::slice::Iter<u16>>) -> usize
-    {
+    pub fn read_from_be_u16(
+        &mut self,
+        it: &mut std::iter::Peekable<std::slice::Iter<u16>>,
+    ) -> usize {
         match &self.data_type {
             DataType::Float32 => {
                 let mut tmp = [0_u16; 2];
@@ -185,7 +205,7 @@ impl ModbusRegisterData {
                     }
                 }
                 self.data_value = write_be_u16_into_f64(&tmp).to_string();
-                    return 4;
+                return 4;
             }
             DataType::Uint32 => {
                 let mut tmp = [0_u16; 2];
@@ -199,7 +219,7 @@ impl ModbusRegisterData {
                 self.data_value = (tmp[0] as u32 | ((tmp[1] as u32) << 16)).to_string();
                 return 2;
             }
-            _ => todo!()
+            _ => todo!(),
         }
     }
 }
@@ -210,8 +230,12 @@ pub struct ModbusRegisterDatabase {
 }
 
 impl ModbusRegisterDatabase {
-    pub fn update_u16_registers(&mut self, register_addr: u16, values: Vec<u16>, function_code: FunctionCode) -> anyhow::Result<usize, ModbusExceptionCode>
-    {
+    pub fn update_u16_registers(
+        &mut self,
+        register_addr: u16,
+        values: Vec<u16>,
+        function_code: FunctionCode,
+    ) -> anyhow::Result<usize, ModbusExceptionCode> {
         let mut value_it = values.iter().peekable();
         let mut total_updated = 0_usize;
         let mut addr = register_addr;
@@ -234,8 +258,12 @@ impl ModbusRegisterDatabase {
         return Err(ModbusExceptionCode::IllegalDataAddress);
     }
 
-    pub fn request_u16_registers(&self, register_addr: u16, registers_to_write: u16, function_code: FunctionCode) -> anyhow::Result<Vec<u16>, ModbusExceptionCode>
-    {
+    pub fn request_u16_registers(
+        &self,
+        register_addr: u16,
+        registers_to_write: u16,
+        function_code: FunctionCode,
+    ) -> anyhow::Result<Vec<u16>, ModbusExceptionCode> {
         let mut registers = Vec::<u16>::new();
         let mut count = registers_to_write as usize;
         let mut addr = register_addr;
@@ -294,92 +322,111 @@ pub struct ModbusCoilData {
 }
 
 impl ModbusCoilData {
-    pub fn is_function_code_supported(&self, function_code: FunctionCode) -> bool
-    {
-        let access_type = self.data_access_type.or_else(|| Some(DataAccessType::ReadWrite)).unwrap();
+    pub fn is_function_code_supported(&self, function_code: FunctionCode) -> bool {
+        let access_type = self
+            .data_access_type
+            .or_else(|| Some(DataAccessType::ReadWrite))
+            .unwrap();
         match (access_type, self.data_model_type) {
-            (DataAccessType::ReadOnly, DataModelType::DiscreteInputs) =>
+            (DataAccessType::ReadOnly, DataModelType::DiscreteInputs) => {
                 if function_code == FunctionCode::ReadDiscreteInputs {
                     true
                 } else {
                     false
-                },
-            (DataAccessType::ReadOnly, DataModelType::Coils) =>
+                }
+            }
+            (DataAccessType::ReadOnly, DataModelType::Coils) => {
                 if function_code == FunctionCode::ReadCoils {
                     true
                 } else {
                     false
-                },
-            (DataAccessType::ReadOnly, DataModelType::DiscreteInputsOrCoils) =>
-                if function_code == FunctionCode::ReadCoils ||
-                   function_code == FunctionCode::ReadDiscreteInputs{
+                }
+            }
+            (DataAccessType::ReadOnly, DataModelType::DiscreteInputsOrCoils) => {
+                if function_code == FunctionCode::ReadCoils
+                    || function_code == FunctionCode::ReadDiscreteInputs
+                {
                     true
                 } else {
                     false
-                },
-            (DataAccessType::ReadOnly, DataModelType::AllType) =>
-                if function_code == FunctionCode::ReadDiscreteInputs ||
-                   function_code == FunctionCode::ReadCoils {
+                }
+            }
+            (DataAccessType::ReadOnly, DataModelType::AllType) => {
+                if function_code == FunctionCode::ReadDiscreteInputs
+                    || function_code == FunctionCode::ReadCoils
+                {
                     true
                 } else {
                     false
-                },
-            (DataAccessType::WriteOnly, DataModelType::DiscreteInputs) |
-            (DataAccessType::WriteOnly, DataModelType::Coils) |
-            (DataAccessType::WriteOnly, DataModelType::DiscreteInputsOrCoils) =>
-                if function_code == FunctionCode::WriteMultipleCoils ||
-                   function_code == FunctionCode::WriteSingleCoil {
+                }
+            }
+            (DataAccessType::WriteOnly, DataModelType::DiscreteInputs)
+            | (DataAccessType::WriteOnly, DataModelType::Coils)
+            | (DataAccessType::WriteOnly, DataModelType::DiscreteInputsOrCoils) => {
+                if function_code == FunctionCode::WriteMultipleCoils
+                    || function_code == FunctionCode::WriteSingleCoil
+                {
                     true
                 } else {
                     false
-                },
-            (DataAccessType::WriteOnly, DataModelType::AllType) =>
-                if function_code == FunctionCode::WriteMultipleCoils ||
-                   function_code == FunctionCode::WriteSingleCoil {
+                }
+            }
+            (DataAccessType::WriteOnly, DataModelType::AllType) => {
+                if function_code == FunctionCode::WriteMultipleCoils
+                    || function_code == FunctionCode::WriteSingleCoil
+                {
                     true
                 } else {
                     false
-                },
-            (DataAccessType::ReadWrite, DataModelType::Coils) =>
-                if function_code == FunctionCode::WriteMultipleCoils ||
-                   function_code == FunctionCode::WriteSingleCoil ||
-                   function_code == FunctionCode::ReadCoils {
+                }
+            }
+            (DataAccessType::ReadWrite, DataModelType::Coils) => {
+                if function_code == FunctionCode::WriteMultipleCoils
+                    || function_code == FunctionCode::WriteSingleCoil
+                    || function_code == FunctionCode::ReadCoils
+                {
                     true
                 } else {
                     false
-                },
-            (DataAccessType::ReadWrite, DataModelType::DiscreteInputs) =>
-                if function_code == FunctionCode::WriteMultipleCoils ||
-                   function_code == FunctionCode::WriteSingleCoil ||
-                   function_code == FunctionCode::ReadDiscreteInputs {
+                }
+            }
+            (DataAccessType::ReadWrite, DataModelType::DiscreteInputs) => {
+                if function_code == FunctionCode::WriteMultipleCoils
+                    || function_code == FunctionCode::WriteSingleCoil
+                    || function_code == FunctionCode::ReadDiscreteInputs
+                {
                     true
                 } else {
                     false
-                },
-            (DataAccessType::ReadWrite, DataModelType::DiscreteInputsOrCoils) =>
-                if function_code == FunctionCode::WriteMultipleCoils ||
-                   function_code == FunctionCode::WriteSingleCoil ||
-                   function_code == FunctionCode::ReadCoils   ||
-                   function_code == FunctionCode::ReadDiscreteInputs {
+                }
+            }
+            (DataAccessType::ReadWrite, DataModelType::DiscreteInputsOrCoils) => {
+                if function_code == FunctionCode::WriteMultipleCoils
+                    || function_code == FunctionCode::WriteSingleCoil
+                    || function_code == FunctionCode::ReadCoils
+                    || function_code == FunctionCode::ReadDiscreteInputs
+                {
                     true
                 } else {
                     false
-                },
-            (DataAccessType::ReadWrite, DataModelType::AllType) =>
-                true,
+                }
+            }
+            (DataAccessType::ReadWrite, DataModelType::AllType) => true,
             _ => false,
         }
     }
 
-    pub fn update(&mut self, value: bool, rdb: &mut ModbusRegisterDatabase)
-    {
+    pub fn update(&mut self, value: bool, rdb: &mut ModbusRegisterDatabase) {
         let d = &mut self.data_value;
         match d {
-            ModbusCoilDataValueType::Independent(_) =>
-                *d = ModbusCoilDataValueType::Independent(IndependentCoil{value}),
-            ModbusCoilDataValueType::RegisterBit(c) =>
-            {
-                let register = rdb.db.get_mut(&c.register).expect(&format!("missing register @ {}", c.register));
+            ModbusCoilDataValueType::Independent(_) => {
+                *d = ModbusCoilDataValueType::Independent(IndependentCoil { value })
+            }
+            ModbusCoilDataValueType::RegisterBit(c) => {
+                let register = rdb
+                    .db
+                    .get_mut(&c.register)
+                    .expect(&format!("missing register @ {}", c.register));
                 let mut current_values = Vec::<u16>::new();
                 let _ = register.write_to_be_u16(&mut current_values);
                 let register_idx = (c.bit / 16) as usize;
@@ -394,23 +441,22 @@ impl ModbusCoilData {
         }
     }
 
-    pub fn read(&self, rdb: &ModbusRegisterDatabase) -> bool
-    {
+    pub fn read(&self, rdb: &ModbusRegisterDatabase) -> bool {
         let d = &self.data_value;
         match d {
-            ModbusCoilDataValueType::Independent(IndependentCoil{value}) =>
-                *value,
-            ModbusCoilDataValueType::RegisterBit(c) =>
-            {
-                let register = rdb.db.get(&c.register).expect(&format!("missing register @ {}", c.register));
+            ModbusCoilDataValueType::Independent(IndependentCoil { value }) => *value,
+            ModbusCoilDataValueType::RegisterBit(c) => {
+                let register = rdb
+                    .db
+                    .get(&c.register)
+                    .expect(&format!("missing register @ {}", c.register));
                 let mut current_values = Vec::<u16>::new();
                 let _ = register.write_to_be_u16(&mut current_values);
                 let register_idx = (c.bit / 16) as usize;
                 let bit_idx = (c.bit % 16) as usize;
                 current_values[register_idx] & (1 << bit_idx) != 0
-            },
+            }
         }
-
     }
 }
 
@@ -420,12 +466,17 @@ pub struct ModbusCoilDatabase {
 }
 
 impl ModbusCoilDatabase {
-    pub fn update_coils(&mut self, coil_addr: u16, values: Vec<bool>, function_code: FunctionCode, rdb: &mut ModbusRegisterDatabase) -> anyhow::Result<usize, ModbusExceptionCode>
-    {
+    pub fn update_coils(
+        &mut self,
+        coil_addr: u16,
+        values: Vec<bool>,
+        function_code: FunctionCode,
+        rdb: &mut ModbusRegisterDatabase,
+    ) -> anyhow::Result<usize, ModbusExceptionCode> {
         let mut value_it = values.iter().peekable();
         let mut total_updated = 0_usize;
         let mut addr = coil_addr;
-        while let Some(data) =self.db.get_mut(&addr) {
+        while let Some(data) = self.db.get_mut(&addr) {
             if data.is_function_code_supported(function_code) {
                 if let Some(new_data) = value_it.next() {
                     data.update(*new_data, rdb);
@@ -444,8 +495,13 @@ impl ModbusCoilDatabase {
         return Err(ModbusExceptionCode::IllegalDataAddress);
     }
 
-    pub fn read_coils(&self, coil_addr: u16, count: u16, function_code: FunctionCode, rdb: &ModbusRegisterDatabase) -> anyhow::Result<Vec<bool>, ModbusExceptionCode>
-    {
+    pub fn read_coils(
+        &self,
+        coil_addr: u16,
+        count: u16,
+        function_code: FunctionCode,
+        rdb: &ModbusRegisterDatabase,
+    ) -> anyhow::Result<Vec<bool>, ModbusExceptionCode> {
         let mut coils = Vec::<bool>::new();
         let mut count = count as usize;
         let mut addr = coil_addr;

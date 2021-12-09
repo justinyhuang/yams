@@ -1,16 +1,14 @@
 use std::fs;
-use tokio_modbus::prelude::*;
 use tokio::time::{sleep, Duration};
+use tokio_modbus::prelude::*;
 use tokio_serial::SerialStream;
 
-use crate::{
-    config::*,
-    util::*,
-    types::*};
+use crate::{config::*, types::*, util::*};
 
-pub async fn start_modbus_client(config: ModbusDeviceConfig) -> Result<(), Box<dyn std::error::Error>>
-{
-    #[cfg(target_os="windows")]
+pub async fn start_modbus_client(
+    config: ModbusDeviceConfig,
+) -> Result<(), Box<dyn std::error::Error>> {
+    #[cfg(target_os = "windows")]
     let _enabled = ansi_term::enable_ansi_support();
 
     print_configuration(&config);
@@ -21,19 +19,22 @@ pub async fn start_modbus_client(config: ModbusDeviceConfig) -> Result<(), Box<d
         let server = Slave(server_id);
         let mut ctx = match config.common.protocol_type {
             ProtocolType::TCP => {
-        let ip_addr = request.server_address
-            .ok_or("Server IP address missing in config")?;
+                let ip_addr = request
+                    .server_address
+                    .ok_or("Server IP address missing in config")?;
                 tcp::connect_slave(ip_addr, server).await?
-            },
+            }
             ProtocolType::RTU => {
-                let device = config.common.device_port.as_ref()
+                let device = config
+                    .common
+                    .device_port
+                    .as_ref()
                     .ok_or("client port missing")?;
-                let baudrate = config.common.baudrate
-                    .ok_or("baudrate missing")?;
+                let baudrate = config.common.baudrate.ok_or("baudrate missing")?;
                 let builder = tokio_serial::new(device, baudrate);
                 let port = SerialStream::open(&builder).unwrap();
                 rtu::connect_slave(port, server).await?
-            },
+            }
         };
         let mut rlist = Vec::<ModbusRequest>::new();
         for request_file in request.request_files {
@@ -68,23 +69,40 @@ pub async fn start_modbus_client(config: ModbusDeviceConfig) -> Result<(), Box<d
                     }
                     sleep(Duration::from_millis(100 * delay_in_100ms)).await;
                     counter += 1;
-                    println!("{}", ansi_term::Colour::Blue.paint(format!(">>{:04}>>", counter)));
+                    println!(
+                        "{}",
+                        ansi_term::Colour::Blue.paint(format!(">>{:04}>>", counter))
+                    );
                     let response = match &r.function_code {
                         FunctionCode::ReadInputRegisters => {
-                            vprintln(&format!("reading {} input registers starting at {}", count, start_addr),
-                                     config.verbose_mode);
+                            vprintln(
+                                &format!(
+                                    "reading {} input registers starting at {}",
+                                    count, start_addr
+                                ),
+                                config.verbose_mode,
+                            );
                             ModbusRequestReturnType::ResultWithU16Vec(
-                                ctx.read_input_registers(start_addr, count).await)
-                        },
+                                ctx.read_input_registers(start_addr, count).await,
+                            )
+                        }
                         FunctionCode::ReadHoldingRegisters => {
-                            vprintln(&format!("reading {} holding registers starting at {}", count, start_addr),
-                                     config.verbose_mode);
+                            vprintln(
+                                &format!(
+                                    "reading {} holding registers starting at {}",
+                                    count, start_addr
+                                ),
+                                config.verbose_mode,
+                            );
                             ModbusRequestReturnType::ResultWithU16Vec(
-                                ctx.read_holding_registers(start_addr, count).await)
-                        },
+                                ctx.read_holding_registers(start_addr, count).await,
+                            )
+                        }
                         FunctionCode::WriteMultipleRegisters => {
-                            let new_values = r.new_values.as_ref().expect("missing value for write");
-                            let data_type = r.data_type.as_ref().expect("missing data type for write");
+                            let new_values =
+                                r.new_values.as_ref().expect("missing value for write");
+                            let data_type =
+                                r.data_type.as_ref().expect("missing data type for write");
                             let mut data = Vec::<u16>::new();
                             match data_type {
                                 DataType::Float32 => {
@@ -93,80 +111,106 @@ pub async fn start_modbus_client(config: ModbusDeviceConfig) -> Result<(), Box<d
                                             data.extend(write_be_f32_into_u16(f));
                                         }
                                     }
-                                },
-                                _ => todo!()
+                                }
+                                _ => todo!(),
                             }
-                            vprintln(&format!("writing registers starting at {} with values:", start_addr),
-                                     config.verbose_mode);
-                            vprintln(&format!("{:?}", &data),
-                                     config.verbose_mode);
+                            vprintln(
+                                &format!(
+                                    "writing registers starting at {} with values:",
+                                    start_addr
+                                ),
+                                config.verbose_mode,
+                            );
+                            vprintln(&format!("{:?}", &data), config.verbose_mode);
                             ModbusRequestReturnType::ResultWithNothing(
-                                ctx.write_multiple_registers(start_addr, &data).await)
-                        },
+                                ctx.write_multiple_registers(start_addr, &data).await,
+                            )
+                        }
                         FunctionCode::WriteMultipleCoils => {
-                            let new_values = r.new_values.as_ref().expect("missing value for write");
+                            let new_values =
+                                r.new_values.as_ref().expect("missing value for write");
                             let mut data = Vec::<bool>::new();
                             for v in new_values {
                                 if let Ok(f) = v.parse::<bool>() {
                                     data.push(f);
                                 }
                             }
-                            vprintln(&format!("writing registers starting at {} with values:", start_addr),
-                                     config.verbose_mode);
-                            vprintln(&format!("{:?}", &data),
-                                     config.verbose_mode);
+                            vprintln(
+                                &format!(
+                                    "writing registers starting at {} with values:",
+                                    start_addr
+                                ),
+                                config.verbose_mode,
+                            );
+                            vprintln(&format!("{:?}", &data), config.verbose_mode);
                             ModbusRequestReturnType::ResultWithNothing(
-                                ctx.write_multiple_coils(start_addr, &data).await)
-                        },
+                                ctx.write_multiple_coils(start_addr, &data).await,
+                            )
+                        }
                         FunctionCode::ReadCoils => {
-                            vprintln(&format!("reading {} coils starting at {}", count, start_addr),
-                                     config.verbose_mode);
+                            vprintln(
+                                &format!("reading {} coils starting at {}", count, start_addr),
+                                config.verbose_mode,
+                            );
                             ModbusRequestReturnType::ResultWithBoolVec(
-                                ctx.read_coils(start_addr, count).await)
-                        },
+                                ctx.read_coils(start_addr, count).await,
+                            )
+                        }
                         FunctionCode::ReadDiscreteInputs => {
-                            vprintln(&format!("reading {} coils starting at {}", count, start_addr),
-                                     config.verbose_mode);
+                            vprintln(
+                                &format!("reading {} coils starting at {}", count, start_addr),
+                                config.verbose_mode,
+                            );
                             ModbusRequestReturnType::ResultWithBoolVec(
-                                ctx.read_discrete_inputs(start_addr, count).await)
-                        },
+                                ctx.read_discrete_inputs(start_addr, count).await,
+                            )
+                        }
                         FunctionCode::WriteSingleCoil => {
-                            let new_values = r.new_values.as_ref().expect("missing value for write");
-                            let data = new_values[0].parse::<bool>().expect("incorrect value for bool");
-                            vprintln(&format!("writing coil at {} with value:", start_addr),
-                                     config.verbose_mode);
-                            vprintln(&format!("{:?}", &data),
-                                     config.verbose_mode);
+                            let new_values =
+                                r.new_values.as_ref().expect("missing value for write");
+                            let data = new_values[0]
+                                .parse::<bool>()
+                                .expect("incorrect value for bool");
+                            vprintln(
+                                &format!("writing coil at {} with value:", start_addr),
+                                config.verbose_mode,
+                            );
+                            vprintln(&format!("{:?}", &data), config.verbose_mode);
                             ModbusRequestReturnType::ResultWithNothing(
-                                ctx.write_single_coil(start_addr, data).await)
-                        },
-                        _ => todo!()
+                                ctx.write_single_coil(start_addr, data).await,
+                            )
+                        }
+                        _ => todo!(),
                     };
                     println!("{}", r.description);
                     match response {
                         ModbusRequestReturnType::ResultWithU16Vec(Ok(response)) => {
-                            let data_type = r.data_type.as_ref().expect("missing data type for write");
+                            let data_type =
+                                r.data_type.as_ref().expect("missing data type for write");
                             match data_type {
-                                DataType::Float32 =>
-                                    println!("===> {:?}", write_be_u16_into_f32(response.as_slice())),
-                                DataType::Float64 =>
-                                    println!("===> {:?}", write_be_u16_into_f64(&response)),
-                                DataType::Uint32 =>
-                                {
+                                DataType::Float32 => println!(
+                                    "===> {:?}",
+                                    write_be_u16_into_f32(response.as_slice())
+                                ),
+                                DataType::Float64 => {
+                                    println!("===> {:?}", write_be_u16_into_f64(&response))
+                                }
+                                DataType::Uint32 => {
                                     let data = response[0] as u32 | (response[1] as u32) << 16;
                                     println!("===> {:?} ({:#010X})", data, data);
-                                },
-                                _ => todo!()
+                                }
+                                _ => todo!(),
                             }
-                        },
-                        ModbusRequestReturnType::ResultWithBoolVec(Ok(response)) =>
-                            println!("{:?}", response),
+                        }
+                        ModbusRequestReturnType::ResultWithBoolVec(Ok(response)) => {
+                            println!("{:?}", response)
+                        }
                         ModbusRequestReturnType::ResultWithNothing(Ok(())) => {
                             println!("===> done");
                         }
-                        ModbusRequestReturnType::ResultWithNothing(Err(e)) |
-                        ModbusRequestReturnType::ResultWithU16Vec(Err(e))  |
-                        ModbusRequestReturnType::ResultWithBoolVec(Err(e)) => {
+                        ModbusRequestReturnType::ResultWithNothing(Err(e))
+                        | ModbusRequestReturnType::ResultWithU16Vec(Err(e))
+                        | ModbusRequestReturnType::ResultWithBoolVec(Err(e)) => {
                             vprint("failure ", ansi_term::Colour::Red, true);
                             println!("{}", e);
                         }
