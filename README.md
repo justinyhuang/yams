@@ -14,13 +14,16 @@ simulator works before running the simulator, including:
 - Modbus server properties:
     - supported function codes
     - supported registers/coils and their values
+    - overlapping of coil and register is supported
 - Modbus client behaviors:
     - requests to send to server(s)
     - support repeated request (single/multi request repeat)
     - support predefined delay before a request
 - Human friendly UI:
-    - flexible request organization
-    - set and show measurements in its own type: 32-bit float
+    - flexible YAML based configuration/request organization
+    - supports verbose mode showing more details across the wire
+    - supports print-out of request/response indexes
+    - set and show measurements in its own type: 32-bit float for example
 
 ## Install
 

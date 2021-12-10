@@ -23,7 +23,7 @@
                   test/requests/read.resettable.totalizer.request.yaml,
                   test/requests/read.serial.number.request.yaml,
                   test/requests/read.led.power.state.coil.request.yaml,
-                  test/requests/read.serial.number.highest.4.bits.coil.request.yaml,
+                  test/requests/read.serial.number.lowest.4.bits.coil.request.yaml,
                   test/requests/write.flowrate.request.yaml,
                   test/requests/write.led.power.state.coil.request.yaml,
                   test/requests/write.serial.number.lowest.4.bits.coil.request.yaml,
