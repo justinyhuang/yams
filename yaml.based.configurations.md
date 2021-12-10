@@ -10,26 +10,38 @@
       protocol_type: >
       Specifies the protocol type: either "TCP" or "RTU"
 
-      device_port: >
-      Specifies the (serial) port of the device used for Modbus RTU.
-      This is an optional configurable item, and when not used just leave it as "~", or do not specify this item.
-      Example: /dev/ttyS0
-
-      device_ip_address: >
-      Specifies the (TCP/IP) address of the device used for Modbus TCP, including the port.
-      This is an optional configurable item, and when not used just leave it as "~", or do not specify this item.
-      Example: 127.0.0.1:5502
-
       device_type: >
       Specifies the type of the simulated Modbus device: either "Server" or "Client"
 
       device_id: >
       Specifies the Modbus ID of the device.
 
-      baudrate: >
+      ip_address: >
+      Specifies the (TCP/IP) address of the device used for Modbus TCP, including the port.
+      This is an optional configurable item, and when not used just leave it as "~", or do not specify this item.
+      Example: 127.0.0.1:5502
+
+      serial_port: >
+      Specifies the (serial) port of the device used for Modbus RTU.
+      This is an optional configurable item, and when not used just leave it as "~", or do not specify this item.
+      Example: /dev/ttyS0
+
+      serial_baudrate: >
       Specifies the baudrate when used for Modbus RTU.
       This is an optional configurable item, and when not used just leave it as "~", or do not specify this item.
       Example: 19200
+
+      serial_parity: >
+      Specifies the parity when used for Modbus RTU: "Odd", "Even" or "None"
+      This is an optional configurable item, and when not used just leave it as "~", or do not specify this item.
+
+      serial_stop_bits: >
+      Specifies the stop bits when used for Modbus RTU: "One" or "Two"
+      This is an optional configurable item, and when not used just leave it as "~", or do not specify this item.
+
+      serial_data_bits: >
+      Specifies the data bits when used for Modbus RTU: "Five", "Six", "Seven" or "Eight"
+      This is an optional configurable item, and when not used just leave it as "~", or do not specify this item.
 
   client: >
   Section for a Modbus Client device. Leave it as "~" for a Server.
@@ -55,9 +67,6 @@
                  data_model_type: >
                  Sets the data model type of this data item.
                  Valid options are:
-                     "DiscretesInput",
-                     "Coils",
-                     "DiscretesInputOrCoils",
                      "InputRegister",
                      "HoldingRegister",
                      "HoldingOrInputRegister",
@@ -92,6 +101,56 @@
               >
               More register data can be set in the "db" block
           }
+
+      coil_data: >
+      Defines the coil data maintained by the Server.
+
+          db: { >
+          "db" stands for "database"
+              xxxxx: { >
+              "xxxxx" should be the coil address of a data item.
+              Example: 40001
+
+                 data_description: >
+                 Sets a human-friendly description for this data item.
+                 This description string will be printed out when the Server handles an access to this item.
+                 Example: "LED power state"
+
+                 data_model_type: >
+                 Sets the data model type of this data item.
+                 Valid options are:
+                     "DiscretesInput",
+                     "Coils",
+                     "DiscretesInputOrCoils",
+
+                 data_access_type: >
+                 Sets the access type of this data item.
+                 Valid options are:
+                     "ReadOnly",
+                     "WriteOnly",
+                     "ReadWrite",
+                 This determines whether the item can be read/written by a client.
+                 This is an optional configurable item, and when not used just leave it as "~", or do not specify this item.
+                 When not specified the access type will be default to "ReadWrite".
+
+                 data_value: { >
+                 Sets the initial data value of the coil.
+                 Modbus allows a server to decide if a coil has its own data storage, or just overlap on top of a
+                 register. Therefore, a Coil can be set as one of the following:
+                 "Independent": this type has its own independent storage.
+                 "RegisterBit": this type is mapped to a bit of a register.
+
+                     type: >
+                     Specifies the type of the Coil: "Independent" or "RegisterBit"
+
+                     value: >
+                     Sets the initial value of the independent coil, when the type is "Independent".
+
+                     register: >
+                     Sets address of the register to associated with the coil, when the type is "RegisterBit".
+
+                     bit: >
+                     Sets bit of the register to associated with the coil, when the type is "RegisterBit".
 ```
 
 ## Client Configurations

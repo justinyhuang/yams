@@ -171,19 +171,20 @@ impl Service for MbServer {
 }
 
 pub async fn start_modbus_server(
-    config: ModbusDeviceConfig,
+    mut config: ModbusDeviceConfig,
 ) -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(target_os = "windows")]
     let _enabled = ansi_term::enable_ansi_support();
 
     print_configuration(&config);
-    let (register_data, coil_data) = config.server.ok_or("Server config missing")?.get_db();
+    let (register_data, coil_data) = config
+        .server
+        .take()
+        .expect("Server config missing")
+        .get_db();
     match config.common.protocol_type {
         ProtocolType::TCP => {
-            let ip_addr = config
-                .common
-                .device_ip_address
-                .ok_or("IP address missing")?;
+            let ip_addr = config.common.ip_address.take().expect("IP address missing");
             let server = server::tcp::Server::new(ip_addr);
             server
                 .serve(move || {
@@ -198,11 +199,8 @@ pub async fn start_modbus_server(
                 .unwrap();
         }
         ProtocolType::RTU => {
-            let port = config.common.device_port.ok_or("device port missing")?;
-            let baudrate = config.common.baudrate.ok_or("baudrate missing")?;
-            let builder = tokio_serial::new(port, baudrate);
-            let server_serial = tokio_serial::SerialStream::open(&builder).unwrap();
-            let server = server::rtu::Server::new(server_serial);
+            let serial = build_serial(&config).ok_or("failed in building the serial server")?;
+            let server = server::rtu::Server::new(serial);
             server
                 .serve_forever(move || {
                     Ok(MbServer {

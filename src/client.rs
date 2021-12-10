@@ -1,43 +1,40 @@
 use std::fs;
 use tokio::time::{sleep, Duration};
 use tokio_modbus::prelude::*;
-use tokio_serial::SerialStream;
 
 use crate::{config::*, types::*, util::*};
 
 pub async fn start_modbus_client(
-    config: ModbusDeviceConfig,
+    mut config: ModbusDeviceConfig,
 ) -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(target_os = "windows")]
     let _enabled = ansi_term::enable_ansi_support();
 
     print_configuration(&config);
-    let client_requests = config.client.ok_or("Client config missing")?.requests;
+    let client_requests = config
+        .client
+        .take()
+        .expect("Client config missing")
+        .requests;
     let mut counter: u16 = 0;
-    for request in client_requests {
-        let server_id = request.server_id.ok_or("server id missing")?;
+    for mut request in client_requests {
+        let server_id = request.server_id.take().expect("server id missing");
         let server = Slave(server_id);
         let mut ctx = match config.common.protocol_type {
             ProtocolType::TCP => {
                 let ip_addr = request
                     .server_address
-                    .ok_or("Server IP address missing in config")?;
+                    .take()
+                    .expect("Server IP address missing in config");
                 tcp::connect_slave(ip_addr, server).await?
             }
             ProtocolType::RTU => {
-                let device = config
-                    .common
-                    .device_port
-                    .as_ref()
-                    .ok_or("client port missing")?;
-                let baudrate = config.common.baudrate.ok_or("baudrate missing")?;
-                let builder = tokio_serial::new(device, baudrate);
-                let port = SerialStream::open(&builder).unwrap();
-                rtu::connect_slave(port, server).await?
+                let serial = build_serial(&config).ok_or("failed in building the serial client")?;
+                rtu::connect_slave(serial, server).await?
             }
         };
         let mut rlist = Vec::<ModbusRequest>::new();
-        for request_file in request.request_files {
+        for request_file in &request.request_files {
             if let Ok(request_str) = fs::read_to_string(&request_file) {
                 if let Ok(r) = serde_yaml::from_str(&request_str) {
                     rlist.push(r);

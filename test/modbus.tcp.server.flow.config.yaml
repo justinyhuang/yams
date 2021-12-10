@@ -1,11 +1,11 @@
 ---
   common:
       protocol_type: TCP
-      device_port: ~
-      device_ip_address: 127.0.0.1:5503
+      serial_port: ~
+      ip_address: 127.0.0.1:5503
       device_type: Server
       device_id: 2
-      baudrate: ~
+      serial_baudrate: ~
   client: ~
   server:
       register_data:

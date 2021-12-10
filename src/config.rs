@@ -3,6 +3,7 @@ use anyhow::{self, Context};
 use clap::Parser;
 use serde::Deserialize;
 use std::{fs, net::SocketAddr, path::PathBuf};
+use tokio_serial::{SerialPort, SerialStream};
 
 #[derive(Parser, Debug)]
 #[clap(version = "0.1", author = "Justin Huang <justin.y.huang@live.com>")]
@@ -46,14 +47,20 @@ pub struct ModbusCommonConfig {
     pub protocol_type: ProtocolType,
     /// the device type (client/server)
     pub device_type: DeviceType,
-    /// the serial port when using Modbus RTU
-    pub device_port: Option<String>,
     /// the id of the client/server
     pub device_id: u8,
     /// the socket address when using Modbus TCP
-    pub device_ip_address: Option<SocketAddr>,
+    pub ip_address: Option<SocketAddr>,
+    /// the serial port when using Modbus RTU
+    pub serial_port: Option<String>,
     /// the baudrate when using Modbus RTU
-    pub baudrate: Option<u32>,
+    pub serial_baudrate: Option<u32>,
+    /// the parity of the serial port
+    pub serial_parity: Option<ParityType>,
+    /// the stop bits of the serial port
+    pub serial_stop_bits: Option<StopBitsType>,
+    /// the data bits of the serial port
+    pub serial_data_bits: Option<DataBitsType>,
 }
 
 pub const REPEAT_TIME_INDEFINITE: u16 = 0xFFFF;
@@ -117,4 +124,18 @@ pub fn configure(opts: &Opts) -> anyhow::Result<ModbusDeviceConfig> {
     } else {
         todo!()
     }
+}
+
+pub fn build_serial(config: &ModbusDeviceConfig) -> Option<SerialStream> {
+    let device = config.common.serial_port.as_ref()?;
+    let baudrate = config.common.serial_baudrate?;
+    let builder = tokio_serial::new(device, baudrate);
+    let mut port = SerialStream::open(&builder).unwrap();
+
+    port.set_parity(config.common.serial_parity?.into()).ok();
+    port.set_stop_bits(config.common.serial_stop_bits?.into())
+        .ok();
+    port.set_data_bits(config.common.serial_data_bits?.into())
+        .ok();
+    Some(port)
 }

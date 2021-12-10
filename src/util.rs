@@ -7,10 +7,10 @@ pub fn print_configuration(config: &ModbusDeviceConfig) {
         print!("runs {:?} ", config.common.protocol_type);
         match config.common.protocol_type {
             ProtocolType::TCP => {
-                println!("@ {}", config.common.device_ip_address.unwrap());
+                println!("@ {}", config.common.ip_address.unwrap());
             }
             ProtocolType::RTU => {
-                println!("@ {}", config.common.device_port.as_ref().unwrap());
+                println!("@ {}", config.common.serial_port.as_ref().unwrap());
             }
         }
     }

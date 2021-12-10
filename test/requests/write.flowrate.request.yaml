@@ -1,9 +1,9 @@
 ---
     description: "write flowrate"
-    function_code: "WriteMultipleRegisters"
+    function_code: WriteMultipleRegisters
     access_start_address: 40001
     access_quantity: 2
     new_values: [99.1]
     repeat_times: ~
     delay: ~
-    data_type: "Float32"
+    data_type: Float32

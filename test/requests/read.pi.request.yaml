@@ -1,9 +1,9 @@
 ---
     description: "read Pi value"
-    function_code: "ReadInputRegisters"
+    function_code: ReadInputRegisters
     access_start_address: 40001
     access_quantity: 2
     new_values: ~
     repeat_times: 2
     delay: ~
-    data_type: "Float32"
+    data_type: Float32

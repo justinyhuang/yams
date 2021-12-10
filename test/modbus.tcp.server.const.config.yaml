@@ -1,27 +1,25 @@
 ---
   common:
-      protocol_type: "TCP"
-      device_port: ~
-      device_ip_address: "127.0.0.1:5502"
-      device_type: "Server"
+      protocol_type: TCP
+      ip_address: 127.0.0.1:5502
+      device_type: Server
       device_id: 3
-      baudrate: ~
   client: ~
   server:
       register_data:
           db: {
               40001: {
                  data_description: "Pi Value",
-                 data_model_type: "InputRegister",
-                 data_access_type: "ReadOnly",
-                 data_type: "Float32",
+                 data_model_type: InputRegister,
+                 data_access_type: ReadOnly,
+                 data_type: Float32,
                  data_value: 3.141593,
                  },
               40003: {
                  data_description: "Golden Ratio",
-                 data_model_type: "HoldingOrInputRegister",
-                 data_access_type: "ReadOnly",
-                 data_type: "Float32",
+                 data_model_type: HoldingOrInputRegister,
+                 data_access_type: ReadOnly,
+                 data_type: Float32,
                  data_value: 1.618034,
                  }
           }

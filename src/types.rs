@@ -1,6 +1,7 @@
 use clap::ArgEnum;
 use serde::Deserialize;
 use std::io;
+use tokio_serial::{DataBits, Parity, StopBits};
 
 #[derive(ArgEnum, Clone, PartialEq, Debug, Deserialize)]
 pub enum DeviceType {
@@ -78,4 +79,55 @@ pub enum ModbusExceptionCode {
     IllegalFunction = 0x01,
     IllegalDataAddress = 0x02,
     IllegalDataValue = 0x03,
+}
+
+#[derive(ArgEnum, Clone, Copy, PartialEq, Debug, Deserialize)]
+pub enum ParityType {
+    Even,
+    Odd,
+    None,
+}
+
+impl Into<Parity> for ParityType {
+    fn into(self) -> Parity {
+        match self {
+            ParityType::Even => Parity::Even,
+            ParityType::Odd => Parity::Odd,
+            ParityType::None => Parity::None,
+        }
+    }
+}
+
+#[derive(ArgEnum, Clone, Copy, PartialEq, Debug, Deserialize)]
+pub enum StopBitsType {
+    One,
+    Two,
+}
+
+impl Into<StopBits> for StopBitsType {
+    fn into(self) -> StopBits {
+        match self {
+            StopBitsType::One => StopBits::One,
+            StopBitsType::Two => StopBits::Two,
+        }
+    }
+}
+
+#[derive(ArgEnum, Clone, Copy, PartialEq, Debug, Deserialize)]
+pub enum DataBitsType {
+    Five,
+    Six,
+    Seven,
+    Eight,
+}
+
+impl Into<DataBits> for DataBitsType {
+    fn into(self) -> DataBits {
+        match self {
+            DataBitsType::Five => DataBits::Five,
+            DataBitsType::Six => DataBits::Six,
+            DataBitsType::Seven => DataBits::Seven,
+            DataBitsType::Eight => DataBits::Eight,
+        }
+    }
 }

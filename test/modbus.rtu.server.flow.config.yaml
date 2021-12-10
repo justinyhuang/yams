@@ -1,10 +1,13 @@
 ---
   common:
-      protocol_type: "RTU"
-      device_port: COM11
-      device_type: "Server"
+      protocol_type: RTU
+      device_type: Server
       device_id: 2
-      baudrate: 119200
+      serial_port: COM11
+      serial_baudrate: 115200
+      serial_parity: Even
+      serial_stop_bits: One
+      serial_data_bits: Eight
   client: ~
   server:
       register_data:
