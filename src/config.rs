@@ -6,7 +6,7 @@ use std::{fs, net::SocketAddr, path::PathBuf};
 use tokio_serial::{SerialPort, SerialStream};
 
 #[derive(Parser, Debug)]
-#[clap(version = "0.6", author = "Justin Huang <justin.y.huang@live.com>")]
+#[clap(version = "0.7", author = "Justin Huang <justin.y.huang@live.com>")]
 pub struct Opts {
     /// Sets the simulator type: Client or Server
     #[clap(arg_enum, short, long, required_unless_present("config-file"))]
