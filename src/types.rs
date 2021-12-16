@@ -19,6 +19,7 @@ pub enum ProtocolType {
 pub enum DataType {
     Float32,
     Float64,
+    Uint16,
     Uint32,
     Uint64,
     Int32,

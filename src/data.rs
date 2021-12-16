@@ -173,6 +173,12 @@ impl ModbusRegisterData {
                     return 2;
                 }
             }
+            DataType::Uint16 => {
+                if let Ok(value) = parse_int::parse::<u16>(&self.data_value) {
+                    registers.push(value);
+                    return 1;
+                }
+            }
             _ => todo!(),
         }
         return 0;
@@ -218,6 +224,14 @@ impl ModbusRegisterData {
                 }
                 self.data_value = (tmp[0] as u32 | ((tmp[1] as u32) << 16)).to_string();
                 return 2;
+            }
+            DataType::Uint16 => {
+                    if let Some(data) = it.next() {
+                        self.data_value = data.to_string();
+                        return 1;
+                    } else {
+                        return 0;
+                    }
             }
             _ => todo!(),
         }

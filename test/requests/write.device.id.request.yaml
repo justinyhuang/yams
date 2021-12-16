@@ -1,0 +1,9 @@
+---
+    description: "write device id"
+    function_code: WriteSingleRegister
+    access_start_address: 40005
+    access_quantity: 1
+    new_values: [0x0BAD]
+    repeat_times: ~
+    delay: ~
+    data_type: Uint16

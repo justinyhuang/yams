@@ -93,6 +93,31 @@ impl Service for MbServer {
                     )))
                 }
             },
+            Request::WriteSingleRegister(addr, value) => {
+                let values = vec![value];
+                match (*rdb).update_u16_registers(
+                    addr,
+                    values,
+                    FunctionCode::WriteSingleRegister,
+                    ) {
+                    Ok(_) => {
+                        vprint("Ok", ansi_term::Colour::Green, self.verbose_mode);
+                        vprintln(
+                            &format!("register updated"),
+                            self.verbose_mode,
+                            );
+                        future::ready(Ok(Response::WriteSingleRegister(addr, value)))
+                    }
+                    Err(e) => {
+                        vprint("Err", ansi_term::Colour::Red, self.verbose_mode);
+                        vprintln(&format!(": {:?} Exception", e), self.verbose_mode);
+                        future::ready(Ok(Response::Custom(
+                                    FunctionCode::WriteSingleRegister.get_exception_code(),
+                                    vec![e as u8],
+                                    )))
+                    }
+                }
+            },
             Request::WriteMultipleCoils(addr, values) => {
                 match (*cdb).update_coils(addr, values, FunctionCode::WriteMultipleCoils, &mut rdb)
                 {

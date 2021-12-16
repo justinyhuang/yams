@@ -1,0 +1,8 @@
+---
+    description: "read device id"
+    function_code: ReadHoldingRegisters
+    access_start_address: 40005
+    access_quantity: 1
+    repeat_times: ~
+    delay: ~
+    data_type: Uint16

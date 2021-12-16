@@ -16,21 +16,28 @@
                  data_access_type: ~,
                  data_type: Float32,
                  data_value: 42.03
-                 },
+              },
               40003: {
                  data_description: "Resettable Totalizer",
                  data_model_type: HoldingOrInputRegister,
                  data_access_type: ReadOnly,
                  data_type: Float64,
                  data_value: 424242.242424
-                 },
+              },
               40004: {
                   data_description: "Serial Number",
                   data_model_type: InputRegister,
                   data_access_type: ReadWrite,
                   data_type: Uint32,
                   data_value: 0x12345678
-              }
+              },
+              40005: {
+                  data_description: "Device ID",
+                  data_model_type: HoldingRegister,
+                  data_access_type: ReadWrite,
+                  data_type: Uint16,
+                  data_value: 0xBABE
+              },
           }
       coil_data:
           db: {

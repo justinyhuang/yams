@@ -5,31 +5,34 @@
       device_id: 1
   client:
       requests: [
-          {
-              server_id: 3,
-              server_address: 127.0.0.1:5502,
-              repeat_times: 2,
-              request_files: [
-                  test/requests/read.multiple.request.yaml,
-                  test/requests/read.pi.request.yaml,
-                  test/requests/read.golden.ratio.request.yaml,
-              ]
-          },
+          #{
+          #    server_id: 3,
+          #    server_address: 127.0.0.1:5502,
+          #    repeat_times: 2,
+          #    request_files: [
+          #        test/requests/read.multiple.request.yaml,
+          #        test/requests/read.pi.request.yaml,
+          #        test/requests/read.golden.ratio.request.yaml,
+          #    ]
+          #},
           {
               server_id: 2,
               server_address: 127.0.0.1:5503,
               request_files: [
+                  test/requests/read.device.id.request.yaml,
+                  test/requests/write.device.id.request.yaml,
+                  test/requests/read.device.id.request.yaml,
                   test/requests/read.flowrate.request.yaml,
-                  test/requests/read.resettable.totalizer.request.yaml,
-                  test/requests/read.serial.number.request.yaml,
-                  test/requests/read.led.power.state.coil.request.yaml,
-                  test/requests/read.serial.number.lowest.4.bits.coil.request.yaml,
+                  #test/requests/read.resettable.totalizer.request.yaml,
+                  #test/requests/read.serial.number.request.yaml,
+                  #test/requests/read.led.power.state.coil.request.yaml,
+                  #test/requests/read.serial.number.lowest.4.bits.coil.request.yaml,
                   test/requests/write.flowrate.request.yaml,
-                  test/requests/write.led.power.state.coil.request.yaml,
-                  test/requests/write.serial.number.lowest.4.bits.coil.request.yaml,
+                  #test/requests/write.led.power.state.coil.request.yaml,
+                  #test/requests/write.serial.number.lowest.4.bits.coil.request.yaml,
                   test/requests/read.flowrate.request.yaml,
-                  test/requests/read.serial.number.request.yaml,
-                  test/requests/read.led.power.state.coil.request.yaml,
+                  #test/requests/read.serial.number.request.yaml,
+                  #test/requests/read.led.power.state.coil.request.yaml,
               ]
           },
       ]
