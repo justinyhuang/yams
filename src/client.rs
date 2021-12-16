@@ -108,7 +108,7 @@ pub async fn start_modbus_client(
                                             data.extend(write_be_f32_into_u16(f));
                                         }
                                     }
-                                }
+                                },
                                 _ => todo!(),
                             }
                             vprintln(
@@ -121,6 +121,29 @@ pub async fn start_modbus_client(
                             vprintln(&format!("{:?}", &data), config.verbose_mode);
                             ModbusRequestReturnType::ResultWithNothing(
                                 ctx.write_multiple_registers(start_addr, &data).await,
+                            )
+                        }
+                        FunctionCode::WriteSingleRegister => {
+                            let new_values =
+                                r.new_values.as_ref().expect("missing value for write");
+                            let data_type =
+                                r.data_type.as_ref().expect("missing data type for write");
+                            let data =
+                                match data_type {
+                                    DataType::Uint16 => parse_int::parse::<u16>(&new_values[0])
+                                        .expect("incorrect value for Uint16"),
+                                    _ => todo!(),
+                                };
+                            vprintln(
+                                &format!(
+                                    "writing register at {} with value:",
+                                    start_addr
+                                ),
+                                config.verbose_mode,
+                            );
+                            vprintln(&format!("{:?}", data), config.verbose_mode);
+                            ModbusRequestReturnType::ResultWithNothing(
+                                ctx.write_single_register(start_addr, data).await,
                             )
                         }
                         FunctionCode::WriteMultipleCoils => {
@@ -195,6 +218,10 @@ pub async fn start_modbus_client(
                                 DataType::Uint32 => {
                                     let data = response[0] as u32 | (response[1] as u32) << 16;
                                     println!("===> {:?} ({:#010X})", data, data);
+                                }
+                                DataType::Uint16 => {
+                                    let data = response[0];
+                                    println!("===> {:?} ({:#06X})", data, data);
                                 }
                                 _ => todo!(),
                             }

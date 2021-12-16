@@ -48,13 +48,14 @@ See [YAML based Configurations](yaml.based.configurations.md)
 - [ ] implement one-shot mode without config files
 - [x] implement verbose mode to print out more detail/data
 - [x] implement request/response counts printout
+- [ ] implement all data support of all current functions, with tests
 - implement function code support below:
   - [x] Read Coils
   - [x] Read Discrete Inputs
   - [x] Read Holding Registers
   - [x] Read Input Registers
   - [x] Write Single Coil
-  - [ ] Write Single Register
+  - [x] Write Single Register
   - [ ] Read Exception Status
   - [ ] Diagnostics
   - [ ] Get Comm Event Counter
