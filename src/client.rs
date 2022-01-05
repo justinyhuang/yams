@@ -45,6 +45,9 @@ pub async fn start_modbus_client(
                 println!("failed in reading request file {}", request_file.display());
             }
         }
+        if let Some(r) = request.request {
+            rlist.push(r);
+        }
 
         let mut section_repeat_times = request.repeat_times.or_else(|| Some(1)).unwrap();
         #[allow(unused_parens)]

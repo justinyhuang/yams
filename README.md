@@ -32,7 +32,7 @@ simulator works before running the simulator, including:
 
 ## Quick Demo:
 
-[DEMO](https://asciinema.org/a/453058)
+[DEMO](https://asciinema.org/a/453058) (slightly outdated, but good enough as a demo :))
 
 ## Configurable Items
 See [YAML based Configurations](yaml.based.configurations.md)
@@ -45,7 +45,7 @@ See [YAML based Configurations](yaml.based.configurations.md)
 - [x] implement support for repeated request(s)
 - [x] implement support for delay before request(s)
 - [x] implement error handling
-- [ ] implement one-shot mode without config files
+- [x] implement one-shot mode without config files
 - [x] implement verbose mode to print out more detail/data
 - [x] implement request/response counts printout
 - [ ] implement all data support of all current functions, with tests

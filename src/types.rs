@@ -9,13 +9,13 @@ pub enum DeviceType {
     Server,
 }
 
-#[derive(ArgEnum, Clone, PartialEq, Debug, Deserialize)]
+#[derive(ArgEnum, Clone, Copy, PartialEq, Debug, Deserialize)]
 pub enum ProtocolType {
     RTU,
     TCP,
 }
 
-#[derive(ArgEnum, Clone, PartialEq, Debug, Deserialize)]
+#[derive(ArgEnum, Clone, Copy, PartialEq, Debug, Deserialize)]
 pub enum DataType {
     Float32,
     Float64,
