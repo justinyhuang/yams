@@ -48,6 +48,7 @@ See [YAML based Configurations](yaml.based.configurations.md)
 - [x] implement one-shot mode without config files
 - [x] implement verbose mode to print out more detail/data
 - [x] implement request/response counts printout
+- [ ] implement support for server behavior triggered by register/coil writes, defined by user
 - [ ] implement all data support of all current functions, with tests
 - implement function code support below:
   - [x] Read Coils
