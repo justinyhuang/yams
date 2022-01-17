@@ -1,0 +1,9 @@
+---
+    description: "write and read device id back"
+    function_code: ReadWriteMultipleRegisters
+    access_start_address: 40005
+    access_quantity: 1
+    new_values: [0xBEEF]
+    repeat_times: ~
+    delay: ~
+    data_type: Uint16

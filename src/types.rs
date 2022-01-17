@@ -64,6 +64,7 @@ pub enum FunctionCode {
     GetcommEventLog = 0x0C,
     WriteMultipleCoils = 0x0F,
     WriteMultipleRegisters = 0x10,
+    ReadWriteMultipleRegisters = 0x17,
 }
 
 impl FunctionCode {

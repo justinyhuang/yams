@@ -25,6 +25,9 @@ simulator works before running the simulator, including:
     - supports print-out of request/response indexes
     - set and show measurements in its own type: 32-bit float for example
 
+To support quick testing, Oneshot mode is provided so that one can run YAMS with only arguments from command line,
+   though it is recommended to run with YAML configuration files to make the most out of YAMS.
+
 ## Install
 
 - Make sure Cargo is installed. See the [install page](rust-lang.org/tools/install) for details.
@@ -67,7 +70,7 @@ See [YAML based Configurations](yaml.based.configurations.md)
   - [ ] Read File Record
   - [ ] Write File Record
   - [ ] Mask Write Register
-  - [ ] Read/Write Multiple registers
+  - [x] Read/Write Multiple registers
   - [ ] Read FIFO Queue
   - [ ] Encaptulated Interface Transport
   - [ ] CANopen General Reference Request and Response PDU

@@ -118,6 +118,42 @@ impl Service for MbServer {
                     }
                 }
             },
+            Request::ReadWriteMultipleRegisters(read_addr, cnt, write_addr, values) => {
+                match (*rdb).update_u16_registers(
+                    write_addr,
+                    values,
+                    FunctionCode::ReadWriteMultipleRegisters,
+                ) {
+                    Ok(_) => {
+                        match (*rdb).request_u16_registers(read_addr, cnt, FunctionCode::ReadWriteMultipleRegisters) {
+                            Ok(registers) => {
+                                vprint("Ok", ansi_term::Colour::Green, self.verbose_mode);
+                                vprintln(
+                                    &format!(": after write, register values {:#06X?}", registers),
+                                    self.verbose_mode,
+                                );
+                                future::ready(Ok(Response::ReadWriteMultipleRegisters(registers)))
+                            }
+                            Err(e) => {
+                                vprint("Err", ansi_term::Colour::Red, self.verbose_mode);
+                                vprintln(&format!(": {:?} Exception", e), self.verbose_mode);
+                                future::ready(Ok(Response::Custom(
+                                            FunctionCode::ReadWriteMultipleRegisters.get_exception_code(),
+                                            vec![e as u8],
+                                )))
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        vprint("Err", ansi_term::Colour::Red, self.verbose_mode);
+                        vprintln(&format!(": {:?} Exception", e), self.verbose_mode);
+                        future::ready(Ok(Response::Custom(
+                                    FunctionCode::WriteMultipleRegisters.get_exception_code(),
+                                    vec![e as u8],
+                        )))
+                    }
+                }
+            },
             Request::WriteMultipleCoils(addr, values) => {
                 match (*cdb).update_coils(addr, values, FunctionCode::WriteMultipleCoils, &mut rdb)
                 {

@@ -20,8 +20,7 @@
               server_address: 127.0.0.1:5503,
               request_files: [
                   test/requests/read.device.id.request.yaml,
-                  test/requests/write.device.id.request.yaml,
-                  test/requests/read.device.id.request.yaml,
+                  test/requests/write.read.device.id.request.yaml,
                   test/requests/read.flowrate.request.yaml,
                   test/requests/read.resettable.totalizer.request.yaml,
                   test/requests/read.serial.number.request.yaml,

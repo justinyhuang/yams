@@ -2,7 +2,7 @@ use std::fs;
 use tokio::time::{sleep, Duration};
 use tokio_modbus::prelude::*;
 
-use crate::{config::*, types::*, util::*};
+use crate::{config::*, data::*, types::*, util::*};
 
 pub async fn start_modbus_client(
     mut config: ModbusDeviceConfig,
@@ -56,7 +56,7 @@ pub async fn start_modbus_client(
             if !section_indefinite_loop {
                 section_repeat_times -= 1;
             }
-            for r in &rlist {
+            for r in &mut rlist {
                 let start_addr = r.access_start_address;
                 let count = r.access_quantity;
                 let mut file_repeat_times = r.repeat_times.or_else(|| Some(1)).unwrap();
@@ -100,19 +100,17 @@ pub async fn start_modbus_client(
                         }
                         FunctionCode::WriteMultipleRegisters => {
                             let new_values =
-                                r.new_values.as_ref().expect("missing value for write");
-                            let data_type =
-                                r.data_type.as_ref().expect("missing data type for write");
+                                r.new_values.take().expect("missing value for write");
                             let mut data = Vec::<u16>::new();
-                            match data_type {
-                                DataType::Float32 => {
-                                    for v in new_values {
-                                        if let Ok(f) = v.parse::<f32>() {
-                                            data.extend(write_be_f32_into_u16(f));
-                                        }
-                                    }
-                                },
-                                _ => todo!(),
+                            for v in new_values {
+                                let d = ModbusRegisterData {
+                                    data_description: "".to_string(),
+                                    data_model_type: DataModelType::HoldingOrInputRegister,
+                                    data_access_type: None,
+                                    data_type: r.data_type.expect("missing data type for write"),
+                                    data_value: v,
+                                };
+                                d.write_into_be_u16(&mut data);
                             }
                             vprintln(
                                 &format!(
@@ -128,15 +126,18 @@ pub async fn start_modbus_client(
                         }
                         FunctionCode::WriteSingleRegister => {
                             let new_values =
-                                r.new_values.as_ref().expect("missing value for write");
-                            let data_type =
-                                r.data_type.as_ref().expect("missing data type for write");
-                            let data =
-                                match data_type {
-                                    DataType::Uint16 => parse_int::parse::<u16>(&new_values[0])
-                                        .expect("incorrect value for Uint16"),
-                                    _ => todo!(),
+                                r.new_values.take().expect("missing value for write");
+                            let mut data = Vec::<u16>::new();
+                            for v in new_values {
+                                let d = ModbusRegisterData {
+                                    data_description: "".to_string(),
+                                    data_model_type: DataModelType::HoldingOrInputRegister,
+                                    data_access_type: None,
+                                    data_type: r.data_type.expect("missing data type for write"),
+                                    data_value: v,
                                 };
+                                d.write_into_be_u16(&mut data);
+                            }
                             vprintln(
                                 &format!(
                                     "writing register at {} with value:",
@@ -146,7 +147,33 @@ pub async fn start_modbus_client(
                             );
                             vprintln(&format!("{:?}", data), config.verbose_mode);
                             ModbusRequestReturnType::ResultWithNothing(
-                                ctx.write_single_register(start_addr, data).await,
+                                ctx.write_single_register(start_addr, data[0]).await,
+                            )
+                        }
+                        FunctionCode::ReadWriteMultipleRegisters =>  {
+                            let new_values =
+                                r.new_values.take().expect("missing value for write");
+                            let mut data = Vec::<u16>::new();
+                            for v in new_values {
+                                let d = ModbusRegisterData {
+                                    data_description: "".to_string(),
+                                    data_model_type: DataModelType::HoldingOrInputRegister,
+                                    data_access_type: None,
+                                    data_type: r.data_type.expect("missing data type for write"),
+                                    data_value: v,
+                                };
+                                d.write_into_be_u16(&mut data);
+                            }
+                            vprintln(
+                                &format!(
+                                    "writing and read registers starting at {} with values:",
+                                    start_addr
+                                ),
+                                config.verbose_mode,
+                            );
+                            vprintln(&format!("{:?}", &data), config.verbose_mode);
+                            ModbusRequestReturnType::ResultWithU16Vec(
+                                ctx.read_write_multiple_registers(start_addr, data.len() as u16, start_addr, &data).await,
                             )
                         }
                         FunctionCode::WriteMultipleCoils => {
@@ -160,7 +187,7 @@ pub async fn start_modbus_client(
                             }
                             vprintln(
                                 &format!(
-                                    "writing registers starting at {} with values:",
+                                    "writing coils starting at {} with values:",
                                     start_addr
                                 ),
                                 config.verbose_mode,

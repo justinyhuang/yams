@@ -128,6 +128,7 @@ impl ModbusRegisterData {
                 if function_code == FunctionCode::WriteMultipleRegisters
                     || function_code == FunctionCode::WriteSingleRegister
                     || function_code == FunctionCode::ReadHoldingRegisters
+                    || function_code == FunctionCode::ReadWriteMultipleRegisters
                 {
                     true
                 } else {
@@ -139,6 +140,7 @@ impl ModbusRegisterData {
                     || function_code == FunctionCode::WriteSingleRegister
                     || function_code == FunctionCode::ReadInputRegisters
                     || function_code == FunctionCode::ReadHoldingRegisters
+                    || function_code == FunctionCode::ReadWriteMultipleRegisters
                 {
                     true
                 } else {
@@ -150,7 +152,7 @@ impl ModbusRegisterData {
         }
     }
 
-    pub fn write_to_be_u16(&self, registers: &mut Vec<u16>) -> usize {
+    pub fn write_into_be_u16(&self, registers: &mut Vec<u16>) -> usize {
         match &self.data_type {
             DataType::Float32 => {
                 if let Ok(value) = self.data_value.parse::<f32>() {
@@ -284,7 +286,7 @@ impl ModbusRegisterDatabase {
         let mut printout = String::new();
         while let Some(data) = self.db.get(&addr) {
             if data.is_function_code_supported(function_code) {
-                let registers_written = data.write_to_be_u16(&mut registers);
+                let registers_written = data.write_into_be_u16(&mut registers);
                 writeln!(&mut printout, "{}", data.data_description).unwrap();
                 writeln!(&mut printout, "{} ===>", data.data_value).unwrap();
                 if count >= registers_written {
@@ -442,7 +444,7 @@ impl ModbusCoilData {
                     .get_mut(&c.register)
                     .expect(&format!("missing register @ {}", c.register));
                 let mut current_values = Vec::<u16>::new();
-                let _ = register.write_to_be_u16(&mut current_values);
+                let _ = register.write_into_be_u16(&mut current_values);
                 let register_idx = (c.bit / 16) as usize;
                 let bit_idx = (c.bit % 16) as usize;
                 if value == true {
@@ -465,7 +467,7 @@ impl ModbusCoilData {
                     .get(&c.register)
                     .expect(&format!("missing register @ {}", c.register));
                 let mut current_values = Vec::<u16>::new();
-                let _ = register.write_to_be_u16(&mut current_values);
+                let _ = register.write_into_be_u16(&mut current_values);
                 let register_idx = (c.bit / 16) as usize;
                 let bit_idx = (c.bit % 16) as usize;
                 current_values[register_idx] & (1 << bit_idx) != 0
