@@ -1,9 +1,9 @@
 use crate::{types::*, util::*};
 use anyhow;
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 use std::{collections::HashMap, fmt::Write as FmtWrite};
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModbusRegisterData {
     /// the data description
     pub data_description: String,
@@ -240,7 +240,7 @@ impl ModbusRegisterData {
     }
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ModbusRegisterDatabase {
     db: HashMap<u16, ModbusRegisterData>,
 }
@@ -307,25 +307,25 @@ impl ModbusRegisterDatabase {
     }
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IndependentCoil {
     value: bool,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RegisterBitCoil {
     register: u16,
     bit: u16,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum ModbusCoilDataValueType {
     Independent(IndependentCoil),
     RegisterBit(RegisterBitCoil),
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModbusCoilData {
     /// the data description
     pub data_description: String,
@@ -476,7 +476,7 @@ impl ModbusCoilData {
     }
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModbusCoilDatabase {
     db: HashMap<u16, ModbusCoilData>,
 }

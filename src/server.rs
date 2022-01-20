@@ -8,6 +8,7 @@ struct MbServer {
     rdb: Arc<Mutex<ModbusRegisterDatabase>>,
     cdb: Arc<Mutex<ModbusCoilDatabase>>,
     verbose_mode: bool,
+    external_mode: bool,
     counter: Arc<Mutex<u16>>,
 }
 
@@ -23,6 +24,13 @@ impl Service for MbServer {
          */
         let mut rdb = self.rdb.lock().unwrap();
         let mut cdb = self.cdb.lock().unwrap();
+
+        if self.external_mode {
+            let r_data = std::fs::read_to_string("./register.data").expect("failed to read register data file");
+            let c_data = std::fs::read_to_string("./coil.data").expect("failed to read coil data file");
+            *rdb = serde_yaml::from_str(&r_data).unwrap();
+            *cdb = serde_yaml::from_str(&c_data).unwrap();
+        }
         let mut counter = self.counter.lock().unwrap();
         *counter += 1;
         println!(
@@ -30,7 +38,7 @@ impl Service for MbServer {
             ansi_term::Colour::Blue.paint(format!(">>{:04}>>", counter))
         );
         vprintln(&format!("received request {:?}", req), self.verbose_mode);
-        match req {
+        let future = match req {
             Request::ReadInputRegisters(addr, cnt) => {
                 match (*rdb).request_u16_registers(addr, cnt, FunctionCode::ReadInputRegisters) {
                     Ok(registers) => {
@@ -227,7 +235,14 @@ impl Service for MbServer {
                 }
             },
             _ => unimplemented!(),
+        };
+        if self.external_mode {
+            let r_str = serde_yaml::to_string(&*rdb).unwrap();
+            let c_str = serde_yaml::to_string(&*cdb).unwrap();
+            std::fs::write("./register.data", r_str).unwrap();
+            std::fs::write("./coil.data", c_str).unwrap();
         }
+        future
     }
 }
 
@@ -243,6 +258,14 @@ pub async fn start_modbus_server(
         .take()
         .expect("Server config missing")
         .get_db();
+
+    if config.external_mode {
+        let r_data = serde_yaml::to_string(&register_data).unwrap();
+        let c_data = serde_yaml::to_string(&coil_data).unwrap();
+        std::fs::write("./register.data", r_data).expect("failed writing to register data file");
+        std::fs::write("./coil.data", c_data).expect("failed writing to coil data file");
+    }
+
     match config.common.protocol_type {
         ProtocolType::TCP => {
             let ip_addr = config.common.ip_address.take().expect("IP address missing");
@@ -253,6 +276,7 @@ pub async fn start_modbus_server(
                         rdb: Arc::new(Mutex::new(register_data.clone())),
                         cdb: Arc::new(Mutex::new(coil_data.clone())),
                         verbose_mode: config.verbose_mode,
+                        external_mode: config.external_mode,
                         counter: Arc::new(Mutex::new(0)),
                     })
                 })
@@ -268,6 +292,7 @@ pub async fn start_modbus_server(
                         rdb: Arc::new(Mutex::new(register_data.clone())),
                         cdb: Arc::new(Mutex::new(coil_data.clone())),
                         verbose_mode: config.verbose_mode,
+                        external_mode: config.external_mode,
                         counter: Arc::new(Mutex::new(0)),
                     })
                 })

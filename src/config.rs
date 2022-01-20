@@ -1,7 +1,7 @@
 use crate::{data::*, types::*};
 use anyhow::{self, Context};
 use clap::Parser;
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 use std::{fs, net::SocketAddr, path::PathBuf};
 use tokio_serial::{SerialPort, SerialStream};
 
@@ -15,6 +15,9 @@ pub struct Opts {
     /// Verbose mode
     #[clap(short, long)]
     pub verbose_mode: bool,
+    /// enable external mode
+    #[clap(short('x'), long, requires("config-file"))]
+    pub external_mode: bool,
 
     /// the modbus protocol type
     #[clap(arg_enum, short('p'), long, required_unless_present("config-file"))]
@@ -160,7 +163,7 @@ pub struct ModbusClientConfig {
     pub register_data: Option<ModbusRegisterDatabase>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ModbusServerConfig {
     /// the register and coil database
     pub register_data: ModbusRegisterDatabase,
@@ -184,6 +187,8 @@ pub struct ModbusDeviceConfig {
     /* internal application options */
     #[serde(default)]
     pub verbose_mode: bool,
+    #[serde(default)]
+    pub external_mode: bool,
 }
 
 fn parse_config_str(config_str: &str) -> anyhow::Result<ModbusDeviceConfig> {
@@ -231,6 +236,7 @@ pub fn configure(opts: &mut Opts) -> anyhow::Result<ModbusDeviceConfig> {
                 register_data: None,
                 }),
                 verbose_mode: opts.verbose_mode,
+                external_mode: opts.external_mode,
         })
         } else {
             println!("server is not supported in one-shot mode");
