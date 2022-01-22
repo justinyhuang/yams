@@ -1,5 +1,5 @@
 use clap::ArgEnum;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::io;
 use tokio_serial::{DataBits, Parity, StopBits};
 

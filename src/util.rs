@@ -10,7 +10,14 @@ pub fn print_configuration(config: &ModbusDeviceConfig) {
                 println!("@ {}", config.common.ip_address.unwrap());
             }
             ProtocolType::RTU => {
-                println!("@ {}", config.common.serial_port.as_ref().unwrap());
+                println!(
+                    "@ {}",
+                    config
+                        .common
+                        .serial_port
+                        .as_ref()
+                        .unwrap()
+                );
             }
         }
     }

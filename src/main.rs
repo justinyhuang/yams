@@ -12,6 +12,7 @@ use crate::{client::*, config::*, server::*, types::*};
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut opts = Opts::parse();
+
     match configure(&mut opts) {
         Ok(mut config) => {
             config.verbose_mode = opts.verbose_mode;
@@ -25,7 +26,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     println!("exit with error: {}", e);
                 }
             }
-        },
+        }
         Err(e) => println!("failed with error: {}", e),
     }
 

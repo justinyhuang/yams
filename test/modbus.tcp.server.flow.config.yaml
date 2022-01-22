@@ -8,6 +8,8 @@
       serial_baudrate: ~
   client: ~
   server:
+      register_data_file: "./flow.register.data"
+      coil_data_file: "./flow.coil.data"
       register_data:
           db: {
               40001: {

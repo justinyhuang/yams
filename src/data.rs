@@ -1,6 +1,6 @@
 use crate::{types::*, util::*};
 use anyhow;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fmt::Write as FmtWrite};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -228,12 +228,12 @@ impl ModbusRegisterData {
                 return 2;
             }
             DataType::Uint16 => {
-                    if let Some(data) = it.next() {
-                        self.data_value = data.to_string();
-                        return 1;
-                    } else {
-                        return 0;
-                    }
+                if let Some(data) = it.next() {
+                    self.data_value = data.to_string();
+                    return 1;
+                } else {
+                    return 0;
+                }
             }
             _ => todo!(),
         }
