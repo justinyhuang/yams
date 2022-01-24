@@ -15,6 +15,11 @@ simulator works before running the simulator, including:
     - supported function codes
     - supported registers/coils and their values
     - overlapping of coil and register is supported
+    - support user defined server behavior triggered by register/coil writes:
+      With this feature enabled: YAMS will share the register/coil data with a user program via data (yaml) files.
+      Each time a register/coil is updated, the user specified program will be invoked to update the register/coil data
+      based on user-defined logic, as long as the external program writes the new data back to the files, YAMS will
+      pick up the new data and continue running.
 - Modbus client behaviors:
     - requests to send to server(s)
     - support repeated request (single/multi request repeat)
@@ -51,7 +56,7 @@ See [YAML based Configurations](yaml.based.configurations.md)
 - [x] implement one-shot mode without config files
 - [x] implement verbose mode to print out more detail/data
 - [x] implement request/response counts printout
-- [ ] implement support for server behavior triggered by register/coil writes, defined by user
+- [x] implement support for server behavior triggered by register/coil writes, defined by user
 - [ ] implement all data support of all current functions, with tests
 - implement function code support below:
   - [x] Read Coils

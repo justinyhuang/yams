@@ -15,9 +15,6 @@ pub struct Opts {
     /// Verbose mode
     #[clap(short, long)]
     pub verbose_mode: bool,
-    /// enable external mode
-    #[clap(short('x'), long, requires("config-file"))]
-    pub external_mode: bool,
 
     /// the modbus protocol type
     #[clap(arg_enum, short('p'), long, required_unless_present("config-file"))]
@@ -164,11 +161,16 @@ pub struct ModbusClientConfig {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ModbusServerConfig {
-    /// the register and coil database
+    /// the register database
     pub register_data: ModbusRegisterDatabase,
+    /// the coil database
     pub coil_data: ModbusCoilDatabase,
+    /// the external file to hold register data
     pub register_data_file: Option<String>,
+    /// the external file to hold coil data
     pub coil_data_file: Option<String>,
+    /// the external program to run upon data updates
+    pub external_program: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -182,8 +184,6 @@ pub struct ModbusDeviceConfig {
     /* internal application options */
     #[serde(default)]
     pub verbose_mode: bool,
-    #[serde(default)]
-    pub external_mode: bool,
 }
 
 fn parse_config_str(config_str: &str) -> anyhow::Result<ModbusDeviceConfig> {
@@ -231,7 +231,6 @@ pub fn configure(opts: &mut Opts) -> anyhow::Result<ModbusDeviceConfig> {
                     register_data: None,
                 }),
                 verbose_mode: opts.verbose_mode,
-                external_mode: opts.external_mode,
             })
         } else {
             println!("server is not supported in one-shot mode");

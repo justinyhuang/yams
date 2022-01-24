@@ -26,7 +26,6 @@ pub fn print_configuration(config: &ModbusDeviceConfig) {
         print!("runs {:?} ", config.common.protocol_type);
     }
     println!("verbose mode: {:?}", config.verbose_mode);
-    println!("external mode: {:?}", config.external_mode);
 }
 
 pub fn vprint(s: &str, c: ansi_term::Color, v: bool) {

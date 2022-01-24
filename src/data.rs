@@ -335,6 +335,8 @@ pub struct ModbusCoilData {
     pub data_access_type: Option<DataAccessType>,
     /// (boolean) data value, or map to a bit of a registers
     pub data_value: ModbusCoilDataValueType,
+    /// external program to run after a register is updated
+    pub external_program: Option<String>,
 }
 
 impl ModbusCoilData {
