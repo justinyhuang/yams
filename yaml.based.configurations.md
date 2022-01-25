@@ -52,6 +52,21 @@
       register_data: >
       Defines the register data maintained by the Server.
 
+      coil_data: >
+      Defines the coil data maintained by the Server.
+
+      register_data_file: >
+      This is optional: the file name for sharing register data between YAMS and the external program.
+      When specified please make sure YAMS can access the file from its path.
+
+      coil_data_file: >
+      This is optional: the file name for sharing coil data between YAMS and the external program.
+      When specified please make sure YAMS can access the file from its path.
+
+      external_program: >
+      This is optional: the name of the external program that YAMS invokes upon a register/coil write.
+      When specified please make sure YAMS can access the file from its path.
+
           db: { >
           "db" stands for "database"
 
@@ -88,11 +103,11 @@
                  Valid options are:
                      "Float32",
                      "Float64",
+                     "Uint16",
                      "Uint32",
                      "Uint64",
                      "Int32",
                      "Int64",
-
                  data_value: >
                  Sets the initial value of the data item.
                  Example: 3.141592653589793
@@ -119,7 +134,7 @@
                  data_model_type: >
                  Sets the data model type of this data item.
                  Valid options are:
-                     "DiscretesInput",
+                     "DiscreteInputs",
                      "Coils",
                      "DiscretesInputOrCoils",
 
@@ -221,10 +236,6 @@ A request YAML file would look like:
         "ReadInputRegisters",
         "WriteSingleCoil",
         "WriteSingleRegister",
-        "ReadExceptionStatus",
-        "Diagnostics",
-        "GetCommeventCounter",
-        "GetcommEventLog",
         "WriteMultipleCoils",
         "WriteMultipleRegisters",
     Note that at the moment not all the function codes are supported/implemented.
@@ -260,6 +271,7 @@ A request YAML file would look like:
     Valid options are:
         "Float32",
         "Float64",
+        "Uint16",
         "Uint32",
         "Uint64",
         "Int32",

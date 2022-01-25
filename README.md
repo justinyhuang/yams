@@ -40,7 +40,7 @@ To support quick testing, Oneshot mode is provided so that one can run YAMS with
 
 ## Quick Demo:
 
-[DEMO](https://asciinema.org/a/453058) (slightly outdated, but good enough as a demo :))
+[DEMO](https://asciinema.org/a/464218)
 
 ## Configurable Items
 See [YAML based Configurations](yaml.based.configurations.md)
