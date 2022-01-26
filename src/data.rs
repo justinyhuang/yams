@@ -1,9 +1,9 @@
 use crate::{types::*, util::*};
 use anyhow;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fmt::Write as FmtWrite};
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModbusRegisterData {
     /// the data description
     pub data_description: String,
@@ -228,19 +228,19 @@ impl ModbusRegisterData {
                 return 2;
             }
             DataType::Uint16 => {
-                    if let Some(data) = it.next() {
-                        self.data_value = data.to_string();
-                        return 1;
-                    } else {
-                        return 0;
-                    }
+                if let Some(data) = it.next() {
+                    self.data_value = data.to_string();
+                    return 1;
+                } else {
+                    return 0;
+                }
             }
             _ => todo!(),
         }
     }
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ModbusRegisterDatabase {
     db: HashMap<u16, ModbusRegisterData>,
 }
@@ -307,25 +307,25 @@ impl ModbusRegisterDatabase {
     }
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IndependentCoil {
     value: bool,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RegisterBitCoil {
     register: u16,
     bit: u16,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum ModbusCoilDataValueType {
     Independent(IndependentCoil),
     RegisterBit(RegisterBitCoil),
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModbusCoilData {
     /// the data description
     pub data_description: String,
@@ -335,6 +335,8 @@ pub struct ModbusCoilData {
     pub data_access_type: Option<DataAccessType>,
     /// (boolean) data value, or map to a bit of a registers
     pub data_value: ModbusCoilDataValueType,
+    /// external program to run after a register is updated
+    pub external_program: Option<String>,
 }
 
 impl ModbusCoilData {
@@ -476,7 +478,7 @@ impl ModbusCoilData {
     }
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModbusCoilDatabase {
     db: HashMap<u16, ModbusCoilData>,
 }

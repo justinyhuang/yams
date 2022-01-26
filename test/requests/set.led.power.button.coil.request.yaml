@@ -1,0 +1,8 @@
+---
+    description: "set led power button"
+    function_code: "WriteSingleCoil"
+    access_start_address: 10006
+    access_quantity: 1
+    new_values: [true]
+    repeat_times: ~
+    delay: ~

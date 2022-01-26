@@ -32,6 +32,10 @@
                   test/requests/read.flowrate.request.yaml,
                   test/requests/read.serial.number.request.yaml,
                   test/requests/read.led.power.state.coil.request.yaml,
+                  test/requests/clear.power.button.coil.request.yaml,
+                  test/requests/read.led.power.state.coil.request.yaml,
+                  test/requests/set.power.button.coil.request.yaml,
+                  test/requests/read.led.power.state.coil.request.yaml,
               ]
           },
       ]

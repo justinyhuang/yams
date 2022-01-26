@@ -1,7 +1,7 @@
 use crate::{data::*, types::*};
 use anyhow::{self, Context};
 use clap::Parser;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::{fs, net::SocketAddr, path::PathBuf};
 use tokio_serial::{SerialPort, SerialStream};
 
@@ -93,8 +93,7 @@ pub struct Opts {
     pub server_address: Option<SocketAddr>,
 }
 
-
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct ModbusRequest {
     /// description of the request
     pub description: String,
@@ -114,7 +113,7 @@ pub struct ModbusRequest {
     pub data_type: Option<DataType>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct ModbusCommonConfig {
     /// the modbus protocol type
     pub protocol_type: ProtocolType,
@@ -138,7 +137,7 @@ pub struct ModbusCommonConfig {
 
 pub const REPEAT_TIME_INDEFINITE: u16 = 0xFFFF;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct ModbusClientRequest {
     /// requested server ID for Modbus RTU
     pub server_id: Option<u8>,
@@ -152,7 +151,7 @@ pub struct ModbusClientRequest {
     pub request: Option<ModbusRequest>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct ModbusClientConfig {
     /// requests send by the client
     pub requests: Vec<ModbusClientRequest>,
@@ -160,20 +159,21 @@ pub struct ModbusClientConfig {
     pub register_data: Option<ModbusRegisterDatabase>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ModbusServerConfig {
-    /// the register and coil database
+    /// the register database
     pub register_data: ModbusRegisterDatabase,
+    /// the coil database
     pub coil_data: ModbusCoilDatabase,
+    /// the external file to hold register data
+    pub register_data_file: Option<String>,
+    /// the external file to hold coil data
+    pub coil_data_file: Option<String>,
+    /// the external program to run upon data updates
+    pub external_program: Option<String>,
 }
 
-impl ModbusServerConfig {
-    pub fn get_db(self) -> (ModbusRegisterDatabase, ModbusCoilDatabase) {
-        (self.register_data, self.coil_data)
-    }
-}
-
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct ModbusDeviceConfig {
     /// common configuration for all Modbus devices
     pub common: ModbusCommonConfig,
@@ -212,7 +212,7 @@ pub fn configure(opts: &mut Opts) -> anyhow::Result<ModbusDeviceConfig> {
                 },
                 server: None,
                 client: Some(ModbusClientConfig {
-                    requests: vec![ ModbusClientRequest {
+                    requests: vec![ModbusClientRequest {
                         server_id: opts.server_id,
                         server_address: opts.server_address,
                         repeat_times: None,
@@ -228,15 +228,14 @@ pub fn configure(opts: &mut Opts) -> anyhow::Result<ModbusDeviceConfig> {
                             data_type: opts.data_type,
                         }),
                     }],
-                register_data: None,
+                    register_data: None,
                 }),
                 verbose_mode: opts.verbose_mode,
-        })
+            })
         } else {
             println!("server is not supported in one-shot mode");
             std::process::exit(1);
         }
-
     }
 }
 
@@ -246,7 +245,8 @@ pub fn build_serial(config: &ModbusDeviceConfig) -> Option<SerialStream> {
     let builder = tokio_serial::new(device, baudrate);
     let mut port = SerialStream::open(&builder).unwrap();
 
-    port.set_parity(config.common.serial_parity?.into()).ok();
+    port.set_parity(config.common.serial_parity?.into())
+        .ok();
     port.set_stop_bits(config.common.serial_stop_bits?.into())
         .ok();
     port.set_data_bits(config.common.serial_data_bits?.into())

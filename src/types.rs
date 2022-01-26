@@ -1,5 +1,5 @@
 use clap::ArgEnum;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::io;
 use tokio_serial::{DataBits, Parity, StopBits};
 
@@ -15,7 +15,7 @@ pub enum ProtocolType {
     TCP,
 }
 
-#[derive(ArgEnum, Clone, Copy, PartialEq, Debug, Deserialize)]
+#[derive(ArgEnum, Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
 pub enum DataType {
     Float32,
     Float64,
@@ -26,7 +26,7 @@ pub enum DataType {
     Int64,
 }
 
-#[derive(ArgEnum, Clone, Debug, Copy, PartialEq, Deserialize)]
+#[derive(ArgEnum, Clone, Debug, Copy, PartialEq, Serialize, Deserialize)]
 pub enum DataModelType {
     DiscreteInputs,
     Coils,
@@ -37,7 +37,7 @@ pub enum DataModelType {
     AllType,
 }
 
-#[derive(ArgEnum, Clone, Debug, Copy, PartialEq, Deserialize)]
+#[derive(ArgEnum, Clone, Debug, Copy, PartialEq, Serialize, Deserialize)]
 pub enum DataAccessType {
     ReadOnly,
     WriteOnly,

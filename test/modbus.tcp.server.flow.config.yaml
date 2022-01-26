@@ -8,6 +8,9 @@
       serial_baudrate: ~
   client: ~
   server:
+      register_data_file: "./test/flow.register.data"
+      coil_data_file: "./test/flow.coil.data"
+      external_program: "./test/update.power.state.led.py"
       register_data:
           db: {
               40001: {
@@ -83,6 +86,15 @@
               },
               10005: {
                  data_description: "LED Power State",
+                 data_model_type: Coils,
+                 data_access_type: ~,
+                 data_value: {
+                     type: Independent,
+                     value: true,
+                 }
+              },
+              10006: {
+                 data_description: "Power Button State",
                  data_model_type: Coils,
                  data_access_type: ~,
                  data_value: {
