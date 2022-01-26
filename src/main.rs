@@ -2,10 +2,10 @@
 mod client;
 mod config;
 mod data;
+mod file;
 mod server;
 mod types;
 mod util;
-mod file;
 use clap::Parser;
 
 use crate::{client::*, config::*, server::*, types::*};

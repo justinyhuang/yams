@@ -1,4 +1,4 @@
-use crate::{config::*, types::*, util::*, file::*};
+use crate::{config::*, file::*, types::*, util::*};
 use futures::future;
 use std::sync::{Arc, Mutex};
 use tokio_modbus::prelude::*;
@@ -82,30 +82,30 @@ impl Service for MbServer {
                 match server
                     .register_data
                     .update_u16_registers(addr, values, FunctionCode::WriteMultipleRegisters)
-                    {
-                        Ok(reg_num) => {
-                            vprint("Ok", ansi_term::Colour::Green, db.verbose_mode);
-                            vprintln(&format!(": {} registers updated", reg_num), db.verbose_mode);
-                            if let Some(p) = &server.external_program {
-                                write_data_to_files(&server);
-                                vprintln(&format!("running external program: {}", p), db.verbose_mode);
-                                let _ = std::process::Command::new(p)
-                                    .output()
-                                    .expect(&format!("failed to execute {}", p));
-                                read_data_from_files(&mut server);
-                            }
-                            future::ready(Ok(Response::WriteMultipleRegisters(addr, reg_num as u16)))
+                {
+                    Ok(reg_num) => {
+                        vprint("Ok", ansi_term::Colour::Green, db.verbose_mode);
+                        vprintln(&format!(": {} registers updated", reg_num), db.verbose_mode);
+                        if let Some(p) = &server.external_program {
+                            write_data_to_files(&server);
+                            vprintln(&format!("running external program: {}", p), db.verbose_mode);
+                            let _ = std::process::Command::new(p)
+                                .output()
+                                .expect(&format!("failed to execute {}", p));
+                            read_data_from_files(&mut server);
                         }
-                        Err(e) => {
-                            vprint("Err", ansi_term::Colour::Red, db.verbose_mode);
-                            vprintln(&format!(": {:?} Exception", e), db.verbose_mode);
-                            future::ready(Ok(Response::Custom(
-                                        FunctionCode::WriteMultipleRegisters.get_exception_code(),
-                                        vec![e as u8],
-                            )))
-                        }
+                        future::ready(Ok(Response::WriteMultipleRegisters(addr, reg_num as u16)))
                     }
-            },
+                    Err(e) => {
+                        vprint("Err", ansi_term::Colour::Red, db.verbose_mode);
+                        vprintln(&format!(": {:?} Exception", e), db.verbose_mode);
+                        future::ready(Ok(Response::Custom(
+                            FunctionCode::WriteMultipleRegisters.get_exception_code(),
+                            vec![e as u8],
+                        )))
+                    }
+                }
+            }
             Request::WriteSingleRegister(addr, value) => {
                 let values = vec![value];
                 match server
@@ -135,54 +135,55 @@ impl Service for MbServer {
                     }
                 }
             }
-            Request::ReadWriteMultipleRegisters(read_addr, cnt, write_addr, values) => {
-                match server
-                    .register_data
-                    .update_u16_registers(write_addr, values, FunctionCode::ReadWriteMultipleRegisters)
-                    {
-                        Ok(_) => {
-                            match server
-                                .register_data
-                                .request_u16_registers(
-                                    read_addr,
-                                    cnt,
-                                    FunctionCode::ReadWriteMultipleRegisters,
-                                ) {
-                                    Ok(registers) => {
-                                        vprint("Ok", ansi_term::Colour::Green, db.verbose_mode);
-                                        vprintln(
-                                            &format!(": after write, register values {:#06X?}", registers),
-                                            db.verbose_mode,
-                                        );
-                                        if let Some(p) = &server.external_program {
-                                            write_data_to_files(&server);
-                                            vprintln(&format!("running external program: {}", p), db.verbose_mode);
-                                            let _ = std::process::Command::new(p)
-                                                .output()
-                                                .expect(&format!("failed to execute {}", p));
-                                            read_data_from_files(&mut server);
-                                        }
-                                        future::ready(Ok(Response::ReadWriteMultipleRegisters(registers)))
-                                    }
-                                    Err(e) => {
-                                        vprint("Err", ansi_term::Colour::Red, db.verbose_mode);
-                                        vprintln(&format!(": {:?} Exception", e), db.verbose_mode);
-                                        future::ready(Ok(Response::Custom(
-                                                    FunctionCode::ReadWriteMultipleRegisters.get_exception_code(),
-                                                    vec![e as u8],
-                                        )))
-                                    }
-                                }
+            Request::ReadWriteMultipleRegisters(read_addr, cnt, write_addr, values) => match server
+                .register_data
+                .update_u16_registers(write_addr, values, FunctionCode::ReadWriteMultipleRegisters)
+            {
+                Ok(_) => {
+                    match server
+                        .register_data
+                        .request_u16_registers(
+                            read_addr,
+                            cnt,
+                            FunctionCode::ReadWriteMultipleRegisters,
+                        ) {
+                        Ok(registers) => {
+                            vprint("Ok", ansi_term::Colour::Green, db.verbose_mode);
+                            vprintln(
+                                &format!(": after write, register values {:#06X?}", registers),
+                                db.verbose_mode,
+                            );
+                            if let Some(p) = &server.external_program {
+                                write_data_to_files(&server);
+                                vprintln(
+                                    &format!("running external program: {}", p),
+                                    db.verbose_mode,
+                                );
+                                let _ = std::process::Command::new(p)
+                                    .output()
+                                    .expect(&format!("failed to execute {}", p));
+                                read_data_from_files(&mut server);
+                            }
+                            future::ready(Ok(Response::ReadWriteMultipleRegisters(registers)))
                         }
                         Err(e) => {
                             vprint("Err", ansi_term::Colour::Red, db.verbose_mode);
                             vprintln(&format!(": {:?} Exception", e), db.verbose_mode);
                             future::ready(Ok(Response::Custom(
-                                        FunctionCode::WriteMultipleRegisters.get_exception_code(),
-                                        vec![e as u8],
+                                FunctionCode::ReadWriteMultipleRegisters.get_exception_code(),
+                                vec![e as u8],
                             )))
                         }
                     }
+                }
+                Err(e) => {
+                    vprint("Err", ansi_term::Colour::Red, db.verbose_mode);
+                    vprintln(&format!(": {:?} Exception", e), db.verbose_mode);
+                    future::ready(Ok(Response::Custom(
+                        FunctionCode::WriteMultipleRegisters.get_exception_code(),
+                        vec![e as u8],
+                    )))
+                }
             },
             Request::WriteMultipleCoils(addr, values) => {
                 match server.coil_data.update_coils(
@@ -301,7 +302,13 @@ pub async fn start_modbus_server(
 
     print_configuration(&config);
 
-    if config.server.as_ref().unwrap().external_program.is_some() {
+    if config
+        .server
+        .as_ref()
+        .unwrap()
+        .external_program
+        .is_some()
+    {
         let server = config.server.as_ref().unwrap();
         write_data_to_files(&server);
     }
