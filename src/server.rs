@@ -21,6 +21,7 @@ impl Service for MbServer {
          */
         let mut db = self.db.lock().unwrap();
         let mut counter = self.counter.lock().unwrap();
+        let endianness = db.common.endianness;
 
         *counter += 1;
         println!(
@@ -35,7 +36,7 @@ impl Service for MbServer {
             Request::ReadInputRegisters(addr, cnt) => {
                 match server
                     .register_data
-                    .request_u16_registers(addr, cnt, FunctionCode::ReadInputRegisters)
+                    .request_u16_registers(addr, cnt, FunctionCode::ReadInputRegisters, endianness)
                 {
                     Ok(registers) => {
                         vprint("Ok", ansi_term::Colour::Green, db.verbose_mode);
@@ -58,7 +59,7 @@ impl Service for MbServer {
             Request::ReadHoldingRegisters(addr, cnt) => {
                 match server
                     .register_data
-                    .request_u16_registers(addr, cnt, FunctionCode::ReadHoldingRegisters)
+                    .request_u16_registers(addr, cnt, FunctionCode::ReadHoldingRegisters, endianness)
                 {
                     Ok(registers) => {
                         vprint("Ok", ansi_term::Colour::Green, db.verbose_mode);
@@ -81,7 +82,7 @@ impl Service for MbServer {
             Request::WriteMultipleRegisters(addr, values) => {
                 match server
                     .register_data
-                    .update_u16_registers(addr, values, FunctionCode::WriteMultipleRegisters)
+                    .update_u16_registers(addr, values, FunctionCode::WriteMultipleRegisters, endianness)
                 {
                     Ok(reg_num) => {
                         vprint("Ok", ansi_term::Colour::Green, db.verbose_mode);
@@ -110,7 +111,7 @@ impl Service for MbServer {
                 let values = vec![value];
                 match server
                     .register_data
-                    .update_u16_registers(addr, values, FunctionCode::WriteSingleRegister)
+                    .update_u16_registers(addr, values, FunctionCode::WriteSingleRegister, endianness)
                 {
                     Ok(_) => {
                         vprint("Ok", ansi_term::Colour::Green, db.verbose_mode);
@@ -137,7 +138,7 @@ impl Service for MbServer {
             }
             Request::ReadWriteMultipleRegisters(read_addr, cnt, write_addr, values) => match server
                 .register_data
-                .update_u16_registers(write_addr, values, FunctionCode::ReadWriteMultipleRegisters)
+                .update_u16_registers(write_addr, values, FunctionCode::ReadWriteMultipleRegisters, endianness)
             {
                 Ok(_) => {
                     match server
@@ -146,6 +147,7 @@ impl Service for MbServer {
                             read_addr,
                             cnt,
                             FunctionCode::ReadWriteMultipleRegisters,
+                            endianness,
                         ) {
                         Ok(registers) => {
                             vprint("Ok", ansi_term::Colour::Green, db.verbose_mode);
@@ -191,6 +193,7 @@ impl Service for MbServer {
                     values,
                     FunctionCode::WriteMultipleCoils,
                     &mut server.register_data,
+                    endianness,
                 ) {
                     Ok(coil_num) => {
                         vprint("Ok", ansi_term::Colour::Green, db.verbose_mode);
@@ -221,6 +224,7 @@ impl Service for MbServer {
                     cnt,
                     FunctionCode::ReadCoils,
                     &server.register_data,
+                    endianness,
                 ) {
                     Ok(coils) => {
                         vprint("Ok", ansi_term::Colour::Green, db.verbose_mode);
@@ -243,6 +247,7 @@ impl Service for MbServer {
                     cnt,
                     FunctionCode::ReadDiscreteInputs,
                     &server.register_data,
+                    endianness,
                 ) {
                     Ok(coils) => {
                         vprint("Ok", ansi_term::Colour::Green, db.verbose_mode);
@@ -259,32 +264,35 @@ impl Service for MbServer {
                     }
                 }
             }
-            Request::WriteSingleCoil(addr, value) => match server.coil_data.update_coils(
-                addr,
-                vec![value],
-                FunctionCode::WriteSingleCoil,
-                &mut server.register_data,
-            ) {
-                Ok(_) => {
-                    vprint("Ok", ansi_term::Colour::Green, db.verbose_mode);
-                    vprintln(&format!(": coil is set to {}", value), db.verbose_mode);
-                    if let Some(p) = &server.external_program {
-                        write_data_to_files(&server);
-                        vprintln(&format!("running external program: {}", p), db.verbose_mode);
-                        let _ = std::process::Command::new(p)
-                            .output()
-                            .expect(&format!("failed to execute {}", p));
-                        read_data_from_files(&mut server);
+            Request::WriteSingleCoil(addr, value) => {
+                match server.coil_data.update_coils(
+                    addr,
+                    vec![value],
+                    FunctionCode::WriteSingleCoil,
+                    &mut server.register_data,
+                    endianness,
+                ) {
+                    Ok(_) => {
+                        vprint("Ok", ansi_term::Colour::Green, db.verbose_mode);
+                        vprintln(&format!(": coil is set to {}", value), db.verbose_mode);
+                        if let Some(p) = &server.external_program {
+                            write_data_to_files(&server);
+                            vprintln(&format!("running external program: {}", p), db.verbose_mode);
+                            let _ = std::process::Command::new(p)
+                                .output()
+                                .expect(&format!("failed to execute {}", p));
+                            read_data_from_files(&mut server);
+                        }
+                        future::ready(Ok(Response::WriteSingleCoil(addr, value)))
                     }
-                    future::ready(Ok(Response::WriteSingleCoil(addr, value)))
-                }
-                Err(e) => {
-                    vprint("Err", ansi_term::Colour::Red, db.verbose_mode);
-                    vprintln(&format!(": {:?} Exception", e), db.verbose_mode);
-                    future::ready(Ok(Response::Custom(
-                        FunctionCode::WriteSingleCoil.get_exception_code(),
-                        vec![e as u8],
-                    )))
+                    Err(e) => {
+                        vprint("Err", ansi_term::Colour::Red, db.verbose_mode);
+                        vprintln(&format!(": {:?} Exception", e), db.verbose_mode);
+                        future::ready(Ok(Response::Custom(
+                                    FunctionCode::WriteSingleCoil.get_exception_code(),
+                                    vec![e as u8],
+                        )))
+                    }
                 }
             },
             _ => unimplemented!(),

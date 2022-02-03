@@ -3,6 +3,12 @@ use serde::{Deserialize, Serialize};
 use std::io;
 use tokio_serial::{DataBits, Parity, StopBits};
 
+#[derive(ArgEnum, Clone, Copy, PartialEq, Debug, Deserialize)]
+pub enum EndiannessType {
+    BigEndian,
+    LittleEndian,
+}
+
 #[derive(ArgEnum, Clone, PartialEq, Debug, Deserialize)]
 pub enum DeviceType {
     Client,

@@ -3,6 +3,7 @@
       protocol_type: TCP
       device_type: Client
       device_id: 1
+      endianness: BigEndian
   client:
       requests: [
           {

@@ -8,6 +8,7 @@
       serial_parity: Even
       serial_stop_bits: One
       serial_data_bits: Eight
+      endianness: BigEndian
   client: ~
   server:
       register_data:

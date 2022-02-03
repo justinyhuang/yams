@@ -17,6 +17,8 @@ pub async fn start_modbus_client(
         .expect("Client config missing")
         .requests;
     let mut counter: u16 = 0;
+    let endianness = config.common.endianness;
+
     for mut request in client_requests {
         let server_id = request
             .server_id
@@ -125,7 +127,7 @@ pub async fn start_modbus_client(
                                         .expect("missing data type for write"),
                                     data_value: v,
                                 };
-                                d.write_into_be_u16(&mut data);
+                                d.write_into_u16(&mut data, endianness);
                             }
                             vprintln(
                                 &format!(
@@ -156,7 +158,7 @@ pub async fn start_modbus_client(
                                         .expect("missing data type for write"),
                                     data_value: v,
                                 };
-                                d.write_into_be_u16(&mut data);
+                                d.write_into_u16(&mut data, endianness);
                             }
                             vprintln(
                                 &format!("writing register at {} with value:", start_addr),
@@ -184,7 +186,7 @@ pub async fn start_modbus_client(
                                         .expect("missing data type for write"),
                                     data_value: v,
                                 };
-                                d.write_into_be_u16(&mut data);
+                                d.write_into_u16(&mut data, endianness);
                             }
                             vprintln(
                                 &format!(
@@ -274,13 +276,13 @@ pub async fn start_modbus_client(
                             match data_type {
                                 DataType::Float32 => println!(
                                     "===> {:?}",
-                                    write_be_u16_into_f32(response.as_slice())
+                                    write_u16_into_f32(response.as_slice(), endianness)
                                 ),
                                 DataType::Float64 => {
-                                    println!("===> {:?}", write_be_u16_into_f64(&response))
+                                    println!("===> {:?}", write_u16_into_f64(&response, endianness))
                                 }
                                 DataType::Uint32 => {
-                                    let data = response[0] as u32 | (response[1] as u32) << 16;
+                                    let data = write_u16_into_u32(&response, endianness);
                                     println!("===> {:?} ({:#010X})", data, data);
                                 }
                                 DataType::Uint16 => {
