@@ -43,11 +43,14 @@ pub struct Opts {
     /// the data bits of the serial port
     #[clap(arg_enum, short('d'), long, required_if_eq("protocol-type", "rtu"))]
     pub serial_data_bits: Option<DataBitsType>,
+    /// the endianness of the Modbus communication
+    #[clap(arg_enum, short('e'), long, required_unless_present("config-file"))]
+    pub endianness: Option<EndiannessType>,
     /// the function code to use in one-shot mode
     #[clap(arg_enum, short('f'), long, required_unless_present("config-file"))]
     pub function_code: Option<FunctionCode>,
     /// the start register address to use in one-shot mode
-    #[clap(short('e'), long, required_if_eq_any(&[("function-code", "write-single-register"),
+    #[clap(short('m'), long, required_if_eq_any(&[("function-code", "write-single-register"),
                                                   ("function-code", "write-multiple-registers"),
                                                   ("function-code", "write-single-coil"),
                                                   ("function-code", "write-multiple-coils"),
@@ -133,6 +136,8 @@ pub struct ModbusCommonConfig {
     pub serial_stop_bits: Option<StopBitsType>,
     /// the data bits of the serial port
     pub serial_data_bits: Option<DataBitsType>,
+    /// the endianness of the Modbus communication
+    pub endianness: EndiannessType,
 }
 
 pub const REPEAT_TIME_INDEFINITE: u16 = 0xFFFF;
@@ -209,6 +214,7 @@ pub fn configure(opts: &mut Opts) -> anyhow::Result<ModbusDeviceConfig> {
                     serial_stop_bits: opts.serial_stop_bits,
                     serial_parity: opts.serial_parity,
                     serial_port: opts.serial_port.take(),
+                    endianness: opts.endianness.unwrap(),
                 },
                 server: None,
                 client: Some(ModbusClientConfig {

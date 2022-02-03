@@ -6,6 +6,7 @@
       device_type: Server
       device_id: 2
       serial_baudrate: ~
+      endianness: BigEndian
   client: ~
   server:
       register_data_file: "./test/flow.register.data"

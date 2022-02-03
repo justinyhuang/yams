@@ -152,18 +152,18 @@ impl ModbusRegisterData {
         }
     }
 
-    pub fn write_into_be_u16(&self, registers: &mut Vec<u16>) -> usize {
+    pub fn write_into_u16(&self, registers: &mut Vec<u16>, e: EndiannessType) -> usize {
         match &self.data_type {
             DataType::Float32 => {
                 if let Ok(value) = self.data_value.parse::<f32>() {
-                    let tmp = write_be_f32_into_u16(value);
+                    let tmp = write_f32_into_u16(value, e);
                     registers.extend(tmp);
                     return 2;
                 }
             }
             DataType::Float64 => {
                 if let Ok(value) = self.data_value.parse::<f64>() {
-                    let tmp = write_be_f64_into_u16(value);
+                    let tmp = write_f64_into_u16(value, e);
                     registers.extend(tmp);
                     return 4;
                 }
@@ -186,9 +186,10 @@ impl ModbusRegisterData {
         return 0;
     }
 
-    pub fn read_from_be_u16(
+    pub fn read_from_u16(
         &mut self,
         it: &mut std::iter::Peekable<std::slice::Iter<u16>>,
+        e: EndiannessType
     ) -> usize {
         match &self.data_type {
             DataType::Float32 => {
@@ -200,7 +201,7 @@ impl ModbusRegisterData {
                         return 0;
                     }
                 }
-                self.data_value = write_be_u16_into_f32(&tmp).to_string();
+                self.data_value = write_u16_into_f32(&tmp, e).to_string();
                 return 2;
             }
             DataType::Float64 => {
@@ -212,7 +213,7 @@ impl ModbusRegisterData {
                         return 0;
                     }
                 }
-                self.data_value = write_be_u16_into_f64(&tmp).to_string();
+                self.data_value = write_u16_into_f64(&tmp, e).to_string();
                 return 4;
             }
             DataType::Uint32 => {
@@ -251,13 +252,14 @@ impl ModbusRegisterDatabase {
         register_addr: u16,
         values: Vec<u16>,
         function_code: FunctionCode,
+        e: EndiannessType,
     ) -> anyhow::Result<usize, ModbusExceptionCode> {
         let mut value_it = values.iter().peekable();
         let mut total_updated = 0_usize;
         let mut addr = register_addr;
         while let Some(data) = self.db.get_mut(&addr) {
             if data.is_function_code_supported(function_code) {
-                let registers_updated = data.read_from_be_u16(&mut value_it);
+                let registers_updated = data.read_from_u16(&mut value_it, e);
                 if registers_updated != 0 {
                     addr += registers_updated as u16;
                     total_updated += registers_updated;
@@ -279,6 +281,7 @@ impl ModbusRegisterDatabase {
         register_addr: u16,
         registers_to_write: u16,
         function_code: FunctionCode,
+        e: EndiannessType,
     ) -> anyhow::Result<Vec<u16>, ModbusExceptionCode> {
         let mut registers = Vec::<u16>::new();
         let mut count = registers_to_write as usize;
@@ -286,7 +289,7 @@ impl ModbusRegisterDatabase {
         let mut printout = String::new();
         while let Some(data) = self.db.get(&addr) {
             if data.is_function_code_supported(function_code) {
-                let registers_written = data.write_into_be_u16(&mut registers);
+                let registers_written = data.write_into_u16(&mut registers, e);
                 writeln!(&mut printout, "{}", data.data_description).unwrap();
                 writeln!(&mut printout, "{} ===>", data.data_value).unwrap();
                 if count >= registers_written {
@@ -434,7 +437,7 @@ impl ModbusCoilData {
         }
     }
 
-    pub fn update(&mut self, value: bool, rdb: &mut ModbusRegisterDatabase) {
+    pub fn update(&mut self, value: bool, rdb: &mut ModbusRegisterDatabase, e: EndiannessType) {
         let d = &mut self.data_value;
         match d {
             ModbusCoilDataValueType::Independent(_) => {
@@ -446,7 +449,7 @@ impl ModbusCoilData {
                     .get_mut(&c.register)
                     .expect(&format!("missing register @ {}", c.register));
                 let mut current_values = Vec::<u16>::new();
-                let _ = register.write_into_be_u16(&mut current_values);
+                let _ = register.write_into_u16(&mut current_values, e);
                 let register_idx = (c.bit / 16) as usize;
                 let bit_idx = (c.bit % 16) as usize;
                 if value == true {
@@ -454,12 +457,12 @@ impl ModbusCoilData {
                 } else {
                     current_values[register_idx] = current_values[register_idx] & (!(1 << bit_idx));
                 }
-                register.read_from_be_u16(&mut current_values.iter().peekable());
+                register.read_from_u16(&mut current_values.iter().peekable(), e);
             }
         }
     }
 
-    pub fn read(&self, rdb: &ModbusRegisterDatabase) -> bool {
+    pub fn read(&self, rdb: &ModbusRegisterDatabase, e: EndiannessType) -> bool {
         let d = &self.data_value;
         match d {
             ModbusCoilDataValueType::Independent(IndependentCoil { value }) => *value,
@@ -469,7 +472,7 @@ impl ModbusCoilData {
                     .get(&c.register)
                     .expect(&format!("missing register @ {}", c.register));
                 let mut current_values = Vec::<u16>::new();
-                let _ = register.write_into_be_u16(&mut current_values);
+                let _ = register.write_into_u16(&mut current_values, e);
                 let register_idx = (c.bit / 16) as usize;
                 let bit_idx = (c.bit % 16) as usize;
                 current_values[register_idx] & (1 << bit_idx) != 0
@@ -490,6 +493,7 @@ impl ModbusCoilDatabase {
         values: Vec<bool>,
         function_code: FunctionCode,
         rdb: &mut ModbusRegisterDatabase,
+        e: EndiannessType,
     ) -> anyhow::Result<usize, ModbusExceptionCode> {
         let mut value_it = values.iter().peekable();
         let mut total_updated = 0_usize;
@@ -497,7 +501,7 @@ impl ModbusCoilDatabase {
         while let Some(data) = self.db.get_mut(&addr) {
             if data.is_function_code_supported(function_code) {
                 if let Some(new_data) = value_it.next() {
-                    data.update(*new_data, rdb);
+                    data.update(*new_data, rdb, e);
                     total_updated += 1;
                 } else {
                     return Err(ModbusExceptionCode::IllegalDataValue);
@@ -519,6 +523,7 @@ impl ModbusCoilDatabase {
         count: u16,
         function_code: FunctionCode,
         rdb: &ModbusRegisterDatabase,
+        e: EndiannessType,
     ) -> anyhow::Result<Vec<bool>, ModbusExceptionCode> {
         let mut coils = Vec::<bool>::new();
         let mut count = count as usize;
@@ -526,7 +531,7 @@ impl ModbusCoilDatabase {
         //let mut printout = String::new();
         while let Some(data) = self.db.get(&addr) {
             if data.is_function_code_supported(function_code) {
-                coils.push(data.read(rdb));
+                coils.push(data.read(rdb, e));
                 count -= 1;
                 if count == 0 {
                     return Ok(coils);
