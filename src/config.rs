@@ -6,7 +6,7 @@ use std::{fs, net::SocketAddr, path::PathBuf};
 use tokio_serial::{SerialPort, SerialStream};
 
 #[derive(Parser, Debug)]
-#[clap(version = "0.8", author = "Justin Huang <justin.y.huang@live.com>")]
+#[clap(version = "0.10", author = "Justin Huang <justin.y.huang@live.com>")]
 pub struct Opts {
     /// Sets the configuration file to load
     #[clap(short, long, required_unless_present_all(&["device-type"]))]
