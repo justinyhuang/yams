@@ -35,7 +35,7 @@ To support quick testing, Oneshot mode is provided so that one can run YAMS with
 
 ## Install
 
-- Make sure Cargo is installed. See the [install page](rust-lang.org/tools/install) for details.
+- Make sure Cargo is installed. See the [install page](https://rust-lang.org/tools/install) for details.
 - Install YAMS by `cargo install yams`.
 
 ## Quick Demo:
